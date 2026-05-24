@@ -1,211 +1,351 @@
 # Reviewer Architecture Plan
 
-This is the main written deliverable. The runnable prototype exists to support this plan, not to replace it.
+This is the production architecture plan for a real Figma-native AI workflow used by real designers, real brands, real model providers, and a deployed backend.
 
-## 1. Requirement Coverage Map
+The local prototype in this repository is supporting evidence only. It shows that the core boundaries can run locally: Figma-facing workflow, backend-owned policy, brand profile lookup, model-like operations, image job lifecycle, usage metering, and audit records. It is not the product plan by itself.
+
+## 1. What The Real Product Does
+
+The product is an AI workflow embedded in Figma for creative teams.
+
+A designer selects text layers and image layers in Figma, then asks the plugin to:
+
+- generate on-brand copy variants,
+- localize selected copy into approved markets,
+- create or replace image placeholders,
+- preview outputs before changing the design,
+- apply chosen outputs back to the canvas,
+- record what was generated, what was applied, who did it, for which brand, and at what estimated cost.
+
+The plugin is intentionally thin. It owns designer interaction, selected-layer context, preview, and apply actions. The deployed backend owns everything sensitive or durable: SSO, tenant and brand authorization, approved brand profiles, provider credentials, model routing, image jobs, policy checks, usage metering, cost attribution, audit logs, reporting, and reliability.
+
+## 2. Requirement Coverage Map
 
 | Requested Item | Where It Is Addressed |
 | --- | --- |
-| Explanation data flow for a "localize copy and replace images" request | [Data Flow](#2-data-flow-localize-copy-and-replace-images) |
-| Justification for technology choices and trade-offs | [Technology Choices](#3-technology-choices-and-trade-offs) |
-| Phased roadmap: MVP, Beta, Full rollout | [Roadmap](#4-phased-roadmap) |
-| User experience and performance balance | [Architecture Balance](#5-architecture-balance) |
+| Explanation data flow for a "localize copy and replace images" request | [Production Data Flow](#3-production-data-flow-localize-copy-and-replace-images) |
+| Justification for technology choices and trade-offs | [Technology Choices](#4-technology-choices-and-trade-offs) |
+| Phased roadmap: MVP, Beta, Full rollout | [Roadmap](#5-phased-roadmap) |
+| User experience and performance balance | [Architecture Balance](#6-architecture-balance) |
 | 2 full-stack engineers, 10 weeks, AI-agent-assisted delivery | [Development Effort](#development-effort-2-engineers-10-weeks-ai-agent-assisted) |
-| 3-month value proof with existing users | [Short-Term Impact](#short-term-impact-next-3-months) |
-| 12-month multi-tenant platform path, 100+ concurrent users, minimized rework | [Long-Term Impact](#long-term-impact-12-months) |
+| Short-term impact in 3 months | [Short-Term Impact](#short-term-impact-next-3-months) |
+| Long-term 12+ month multi-tenant platform path | [Long-Term Impact](#long-term-impact-12-months) |
+| 100+ concurrent users and minimized rework | [Long-Term Impact](#long-term-impact-12-months) and [Minimizing Rework](#minimizing-rework) |
 
-## 2. Data Flow: Localize Copy And Replace Images
+## 3. Production Data Flow: Localize Copy And Replace Images
 
-Example user request: a designer selects 2 text layers and 1 image-fill layer in Figma, then asks the plugin to localize the CTA and replace the image placeholder.
+Example request: a designer is working on a campaign in Figma. They select a CTA text layer and a 1024x1024 product-image placeholder, then ask the plugin to localize the CTA and create a brand-appropriate replacement image.
 
 ```mermaid
 sequenceDiagram
   participant Designer
-  participant FigmaPlugin as Figma Plugin
-  participant API as Backend API
-  participant Profile as Brand Profile Store
+  participant Plugin as Figma Plugin
+  participant Auth as SSO/OAuth
+  participant API as Deployed Backend API
+  participant Policy as Tenant/Brand Policy
+  participant Profile as Brand Profile Service
   participant Model as Model Gateway
-  participant Queue as Image Job Queue
-  participant Assets as Asset Storage
-  participant Metering as Usage And Audit
+  participant Queue as Image Queue Workers
+  participant Assets as Private Asset Storage
+  participant Usage as Usage, Cost, Audit
+  participant Observability
 
-  Designer->>FigmaPlugin: Select text layers and 1024x1024 image layer
-  FigmaPlugin->>API: Start OAuth/PKCE-shaped plugin session
-  API-->>FigmaPlugin: Short-lived plugin access token
-  FigmaPlugin->>API: Send layer IDs, text, locale list, image layer metadata
-  API->>Profile: Load active approved brand profile
-  API->>API: Validate tenant, brand, profile, operation scope, layer type
-  API->>Model: Request localized copy with brand profile and locale constraints
-  Model-->>API: Structured localization results
-  API->>Metering: Record operationId and usageEventId for localization
-  API-->>FigmaPlugin: Return previewable localized copy
-  Designer->>FigmaPlugin: Apply selected localization
-  FigmaPlugin->>API: Record apply event for text layer
-  API->>Metering: Record applyEventId and auditEventId
-  FigmaPlugin->>API: Create image placeholder job
-  API->>Queue: Enqueue image job with policy-checked prompt
-  Queue->>Model: Request image or placeholder asset
-  Queue->>Assets: Store generated asset metadata and bytes
-  Queue->>Metering: Record image usage and audit trail
-  FigmaPlugin->>API: Poll job status
-  API-->>FigmaPlugin: Return completed 1024x1024 asset
-  Designer->>FigmaPlugin: Apply image fill to selected layer
-  FigmaPlugin->>API: Record image apply event
+  Designer->>Plugin: Select text layer and image-fill layer
+  Plugin->>API: Start plugin session handoff
+  API->>Auth: OAuth/PKCE or SSO verification
+  Auth-->>API: User identity and workspace claims
+  API-->>Plugin: Short-lived plugin session
+  Plugin->>API: Send selected layer metadata, text, target locales, image dimensions, request context
+  API->>Policy: Validate tenant, brand, user role, locale, quota, feature flag
+  API->>Profile: Load approved brand profile and prompt/profile version
+  API->>Model: Request localized copy with profile, glossary, locale rules, and structured output contract
+  Model-->>API: Locale-specific copy candidates
+  API->>Usage: Record generation operation and estimated cost
+  API-->>Plugin: Return previewable localized copy
+  Designer->>Plugin: Apply selected localized copy
+  Plugin->>API: Record apply event for text layer
+  API->>Usage: Record applyEventId and auditEventId
+  Plugin->>API: Request image replacement for selected image layer
+  API->>Policy: Validate prompt, image dimensions, rights rules, safety rules, provider route
+  API->>Queue: Enqueue image job
+  Queue->>Model: Call image provider or internal image model through gateway
+  Model-->>Queue: Generated image candidate
+  Queue->>Assets: Store image bytes and metadata in tenant-scoped storage
+  Queue->>Usage: Record image operation, provider cost, policy metadata, audit event
+  Queue->>Observability: Emit job duration, provider status, queue age
+  Plugin->>API: Poll or subscribe to image job status
+  API-->>Plugin: Return completed preview URL and asset metadata
+  Designer->>Plugin: Apply image fill
+  Plugin->>API: Record image apply event
 ```
 
-Key design points:
+Important production behavior:
 
-- The plugin does not call model providers directly and never stores provider credentials.
-- The backend validates tenant, brand, user, profile, layer type, and operation scope before each model-like action.
-- Generated output is previewed first; it only becomes "used" when the designer applies it back to the canvas.
-- Usage and audit records are written for generation, asset creation, and apply events, which supports cost attribution and later compliance review.
-- Image replacement is asynchronous because production image generation can be slow, rate-limited, or policy-gated.
-- The MVP image path should use the approved brand profile's visual notes and the selected layer metadata, not arbitrary customer reference images. Reference images or brand asset libraries can be added later only after rights, consent, retention, and tenant-isolation controls are explicit.
+- The plugin never owns provider keys and never calls model providers directly.
+- The backend validates tenant, brand, user, locale, feature flag, quota, and layer type on every operation.
+- Brand profile data is created from customer brand guidelines and approved before runtime use. It is not a Figma-native object.
+- Copy and localization can be synchronous because designers expect fast text feedback.
+- Image generation is asynchronous because real image providers may be slow, expensive, rate-limited, or policy-gated.
+- Generated content is previewed first. It only counts as adopted when a designer applies it to the Figma canvas.
+- Usage, cost, and audit records are first-class product objects, not logs added later.
 
-## 3. Technology Choices And Trade-Offs
+## 4. Technology Choices And Trade-Offs
 
-| Choice | Why | Trade-Off | Mitigation |
+| Choice | Why It Fits The Real Product | Trade-Off | Mitigation |
 | --- | --- | --- | --- |
-| Figma plugin as primary UX | Designers work inside Figma; selected layer context and canvas apply actions are native there. | Figma plugin APIs add packaging and platform constraints. | Keep the plugin thin and move policy, model calls, and persistence to the backend. |
-| Backend-owned model gateway | Enables tenant isolation, provider-key protection, cost controls, prompt/profile governance, and auditability. | More backend work than a plugin-only prototype. | Build stable API contracts first and keep local deterministic providers for fast testing. |
-| FastAPI service | Fast to build, typed request/response models, good OpenAPI support, low ceremony for a 2-engineer prototype. | A large enterprise rollout may eventually need stronger service boundaries. | Keep the API stateless and contracts explicit so pieces can split later if traffic requires it. |
-| SQLite in local prototype, Postgres in production | SQLite makes the demo free and portable; Postgres is the production relational store for tenants, profiles, usage, and audit rows. | SQLite does not prove production concurrency. | Design schema and access patterns for Postgres; keep SQLite only as the local persistence adapter. |
-| Deterministic local model/image fixtures | Runs locally without paid API keys and gives repeatable verification. | Does not prove live model quality. | Add model-gateway abstraction, golden samples, evaluation gates, and later provider A/B tests. |
-| Async image jobs | Matches real provider latency, safety review, retries, and asset storage. | Slightly more UX complexity than a synchronous button. | Show queued/running/completed states and keep copy/localization synchronous for speed. |
-| No reference-image upload in MVP | Reduces rights, privacy, storage, and provider-policy risk while still proving image replacement workflow. | Generated placeholders are less brand-specific than a true reference-image workflow. | Use approved visual notes first; add governed brand asset/reference libraries in Beta or full rollout. |
-| Browser harness as fallback demo | Lets reviewers run the backend contract without Figma setup. | Could be mistaken for the primary product. | README and demo docs explicitly say the Figma plugin is the primary designer workflow. |
+| Figma plugin as primary UX | Designers already work in Figma; the plugin can read selected layers and apply output directly. | Plugin APIs constrain UI, auth, packaging, and background execution. | Keep plugin thin; move policy, model calls, persistence, and queues to the backend. |
+| Deployed backend trust boundary | Required for SSO, tenant isolation, provider credentials, quotas, usage, audit, and billing. | More work than a plugin-only proof. | Start with a narrow backend API and explicit contracts; avoid putting business logic in the plugin. |
+| OAuth/PKCE or SSO-backed plugin sessions | Enterprise customers need secure identity and workspace access control. | Figma plugin auth flows are more complex than ordinary web auth. | Backend-owned handoff, browser SSO completion, short-lived plugin tokens, refresh and revocation controls. |
+| Approved brand profile service | Real brands need governed tone, glossary, forbidden terms, locale rules, and visual notes. | Brand material is messy and requires review. | Convert PDFs/docs into draft profiles, require human approval, version profiles, support rollback. |
+| Model gateway | Allows provider abstraction, cost controls, policy routing, fallbacks, and quality evaluation. | Adds routing and observability work. | Normalize provider contracts behind one gateway and log model, prompt, cost, latency, and safety metadata. |
+| Async image pipeline | Real image generation is slower and riskier than text. It needs retries, moderation, asset storage, and apply metadata. | Users wait for images. | Keep text operations fast, show image status, notify on completion, and cache/reuse job results. |
+| Postgres for relational data | Tenants, users, brands, profiles, operations, usage, applies, and audits need durable relational consistency. | Requires migrations and careful indexing. | Keep schema explicit from MVP and optimize around tenant/user/brand/reporting queries. |
+| Object storage for generated assets | Image bytes and uploaded brand materials should not live in the database. | Requires retention, access, and lifecycle controls. | Tenant-scoped storage keys, signed URLs, retention policies, and audit metadata. |
+| Queue workers for image/PDF/model-heavy work | Protects API responsiveness and handles retries/rate limits. | Adds operational complexity. | Start with one worker queue and clear job states; add priority queues only after usage proves need. |
+| Real model providers in production | Needed to prove quality with real brands and designers. | Cost, latency, safety, and provider drift. | Golden samples, evaluation harness, provider routing, quotas, monitoring, and fallback models. |
+| AI-agent-assisted engineering | Codex/Claude Code-style agents can speed scaffolding, tests, docs, fixtures, and review loops. | Agents can create unreviewed complexity or false confidence. | Engineers retain ownership of architecture, security, quality gates, and release decisions. |
 
-## 4. Phased Roadmap
+## 5. Phased Roadmap
 
-### MVP: Weeks 1-10
+### Phase 1: MVP In 10 Weeks
 
-Goal: prove one governed Figma-native workflow with a small pilot group.
+Goal: ship a real deployed pilot for a narrow workflow, not a complete platform.
 
-Scope:
+Target users:
 
-- Figma plugin for selected text layers and 1024x1024 image-fill layers.
-- OAuth/PKCE-shaped plugin session exchange and tenant/brand authorization.
-- Approved brand profile lookup from uploaded guideline material.
-- Copy variants, 8-locale localization, and async image placeholder jobs.
-- Image prompts based on approved visual notes and layer context, without uploading reference images to providers.
-- Preview before apply, apply-event recording, usage metering, and audit trail.
-- Basic reporting by user, tenant, brand, operation, estimated cost, and apply rate.
-- Local and CI-style verification for API contracts, frontend harness, latency, and visual smoke.
+- a small group of real designers,
+- a limited set of real brands,
+- controlled Figma files and campaign types,
+- production-like backend deployment with observability.
+
+MVP scope:
+
+- Figma plugin for selected text layers and approved image-fill layers.
+- SSO/OAuth session handoff and short-lived plugin tokens.
+- Tenant, brand, and user authorization on every backend route.
+- Brand guideline ingestion from PDFs/docs into draft brand profiles.
+- Human-reviewed and approved brand profile versions.
+- Real text model calls through a backend model gateway for copy and localization.
+- Image placeholder or ideation image generation through a governed async image job pipeline.
+- Preview-before-apply UX.
+- Apply-event tracking so adopted output is distinct from generated output.
+- Usage and cost attribution by user, tenant, brand, operation, provider, and applied output.
+- Deployed backend with health checks, logs, metrics, alerting, backups, and rollback path.
+
+What to cut from MVP if time is tight:
+
+- self-service tenant onboarding,
+- advanced analytics,
+- complex admin workflows,
+- broad image styles,
+- multiple image providers,
+- polished billing UI,
+- support for every possible Figma node type.
+
+What not to cut:
+
+- tenant isolation,
+- provider credential protection,
+- usage metering,
+- audit trail,
+- approved brand profile governance,
+- apply-event tracking,
+- SSO/session security,
+- basic monitoring and rollback.
 
 MVP risks and mitigations:
 
 | Risk | Mitigation |
 | --- | --- |
-| Generated copy quality is not good enough | Golden samples, reviewed profile versions, prompt templates, feedback taxonomy, and pilot-quality review. |
-| Plugin edge cases slow delivery | Cut advanced layer types first; support text and 1024x1024 fill layers well. |
-| Cost tracking is incomplete | Treat usage and audit writes as release blockers from day 1. |
-| 10-week scope is too broad | Cut admin polish, advanced analytics, and self-service onboarding before cutting auth, metering, audit, or profile governance. |
+| Model quality fails real brand review | Use approved profiles, golden samples, prompt/profile versions, and human pilot review. |
+| Figma plugin edge cases slow delivery | Support a small set of layer types well; clearly reject unsupported layers. |
+| Provider latency hurts UX | Keep text operations synchronous under target latency; make images async with progress states. |
+| Cost tracking is incomplete | Make usage/cost writes blocking acceptance criteria for model operations. |
+| Tenant leakage risk | Backend tenant checks, scoped storage keys, contract tests, and security review before pilot expansion. |
+| 10-week scope pressure | Use AI agents for scaffolding/tests/docs, but cut breadth before governance and security. |
 
-### Beta: Next 3 Months
+### Phase 2: Beta In The Next 3 Months
 
-Goal: prove value quickly with the existing user base and decide whether to expand.
+Goal: prove measurable value with the existing user base before investing in broad platform work.
 
-Scope:
+Beta scope:
 
-- Pilot with a few teams and brands already using Figma.
-- Measure apply rate, time saved per asset, localization rework, cost per accepted output, provider error rate, image-job completion, and profile approval latency.
-- Add role-based brand access, quota controls, prompt/profile rollback, and basic admin review.
-- Decide whether governed brand asset libraries or reference images are needed for stronger image specificity.
-- Improve model quality using real feedback loops, not only prompt intuition.
-- Harden monitoring, alerts, retry behavior, and support runbooks.
+- Expand from the first pilot group to several teams or brands.
+- Add better brand profile review UX and rollback.
+- Add prompt/profile evaluation using real examples and designer feedback.
+- Add role-based access for brand owners, designers, and admins.
+- Add quotas and budget warnings.
+- Add provider-cost dashboards and cost-per-applied-output reporting.
+- Add production runbooks for provider outage, bad output, tenant access issues, and image job failures.
+- Decide whether governed brand asset/reference-image libraries are needed for stronger image specificity.
+
+Short-term success metrics:
+
+- time saved per campaign or asset,
+- percentage of generated outputs applied,
+- localization review time reduction,
+- cost per applied output,
+- quality-review pass rate,
+- provider latency and error rate,
+- image job completion rate,
+- designer retention and repeat usage.
 
 Beta risks and mitigations:
 
 | Risk | Mitigation |
 | --- | --- |
-| Users like generation but do not apply outputs | Track preview-to-apply funnel and talk to low-apply users. |
-| Localization creates brand or legal risk | Require approved locale list, profile constraints, and human review for sensitive brands. |
-| Reference images introduce rights or privacy risk | Keep them out of MVP; add only with consent metadata, storage policy, and provider-routing controls. |
-| Provider latency hurts the Figma flow | Keep copy/localization under the synchronous latency target; keep image generation async with visible status. |
-| Pilot metrics are ambiguous | Define success before rollout: adoption, apply rate, time saved, cost per applied output, quality-review pass rate. |
+| Users generate content but do not apply it | Track preview-to-apply funnel and talk to low-apply users. |
+| Brand teams distrust outputs | Add review states, profile versioning, before/after examples, and feedback loops. |
+| Localization creates legal or brand risk | Approved locale lists, glossary constraints, human review for sensitive brands. |
+| Reference images create rights/privacy risk | Keep them out until consent metadata, retention policy, and provider routing are explicit. |
+| Costs scale faster than value | Report cost per applied output, enforce quotas, route providers by value and quality. |
 
-### Full Rollout: 12+ Months
+### Phase 3: Full Rollout At 12+ Months
 
-Goal: turn the workflow into a multi-tenant platform licensed to several companies, with 100+ concurrent users and minimal rework.
+Goal: become a licensable multi-tenant creative AI platform for several companies, not just one internal workflow. This is a 12+ month path, realistically 12-24 months depending on enterprise SSO, provider governance, brand onboarding, and customer rollout requirements.
 
-Scope:
+Full rollout scope:
 
-- Multi-tenant workspace model with strict tenant isolation, tenant-level quotas, brand libraries, and billing exports.
-- Provider gateway supporting multiple text and image models, policy routing, fallbacks, and cost controls.
-- Optional governed brand asset/reference-image library with per-tenant isolation, consent metadata, expiration, and provider allow/deny routing.
-- Postgres, object storage, queue workers, horizontal API scaling, and regional availability where needed.
-- Enterprise SSO, audit exports, data retention policies, admin controls, and security review.
-- Plugin contract versioning so old plugin clients do not break when backend features evolve.
-- Tenant onboarding playbooks and self-service profile management after the manual pilot process is understood.
+- Multi-tenant workspace model with strict tenant isolation.
+- Customer-specific brand libraries, approved profiles, locale rules, and policy settings.
+- Enterprise SSO, SCIM-style user provisioning, role-based access, and audit exports.
+- Provider gateway supporting multiple text and image providers, fallback routing, quality evaluation, and cost controls.
+- Queue workers for images, PDF/profile extraction, and slow provider calls.
+- Tenant-scoped object storage for generated images, source guidelines, and optional reference assets.
+- Reporting and billing exports by tenant, brand, user, operation, provider, and applied output.
+- Admin controls for quotas, feature flags, retention, model/provider allowlists, and safety policies.
+- Plugin contract versioning so old plugin clients can keep working during backend evolution.
+- Additional surfaces beyond Figma if the backend workflow proves reusable, such as web admin, asset review, or campaign QA.
 
 Long-term risks and mitigations:
 
 | Risk | Mitigation |
 | --- | --- |
-| Multi-tenant data leakage | Backend tenant checks on every route, tenant-scoped storage keys, audit tests, and security review before each expansion wave. |
-| Rework from local prototype to platform | Keep boundaries production-shaped from the start: thin plugin, backend-owned policy, explicit contracts, queue-shaped image jobs, usage/audit records. |
-| 100+ concurrent users overload model or image flows | Stateless API scaling, queue workers, provider rate-limit handling, quotas, and async image jobs. |
-| Cost grows faster than value | Meter per user/tenant/brand/operation, report cost per applied output, enforce quotas and provider routing policies. |
+| Multi-tenant data leakage | Tenant-scoped authorization on every route, storage isolation, audit tests, security review, and alerting. |
+| 100+ concurrent users overload backend or providers | Stateless API instances, queue workers, provider rate-limit handling, quotas, caching, and backpressure. |
+| Model/provider quality drifts | Golden samples, evaluation runs, provider comparison, prompt/profile versioning, and rollback. |
+| Platform rework from MVP shortcuts | Keep production-shaped boundaries in MVP: backend policy, contracts, profiles, queues, usage, audit, object storage path. |
+| Enterprise adoption blocked by governance | SSO, audit export, retention policy, admin controls, and provider allow/deny policies. |
 
-## 5. Architecture Balance
+## 6. Architecture Balance
 
 ### User Experience And Performance
 
-- The designer stays inside Figma for selection, preview, and apply.
-- Copy and localization are synchronous because users expect quick text feedback.
-- Image generation is asynchronous because image providers may be slow or policy-gated.
-- The plugin presents preview states and only applies output when the designer chooses it.
-- The backend owns heavy work so the plugin stays responsive and low-risk.
-- The local verifier includes latency checks for core operations; production would monitor p50/p95 latency, queue age, provider errors, and apply-event write success.
+The UX goal is to keep designers in Figma and make AI feel like a canvas-native workflow, not a separate chatbot.
+
+Design choices:
+
+- The plugin reads selected layers and returns previews in context.
+- Text generation and localization are synchronous because designers expect fast copy feedback.
+- Image generation is asynchronous because real image providers can take longer and require policy checks.
+- The plugin shows clear job states: queued, running, completed, failed, blocked by policy.
+- The designer decides what to apply; generation alone does not mutate the file.
+- Applied output is recorded after the canvas action, so reporting reflects actual adoption.
+
+Performance targets:
+
+- copy/localization p50 under 2 seconds for small selections,
+- image job progress visible immediately, even if completion is async,
+- backend API health and contract checks before release,
+- monitoring for provider latency, provider errors, queue age, image completion rate, and apply-event write success.
 
 ### Development Effort: 2 Engineers, 10 Weeks, AI-Agent-Assisted
 
-The plan is intentionally sized for 2 full-stack engineers in 10 weeks, with AI coding agents such as Codex or Claude Code used as accelerators for scaffolding, tests, docs, fixtures, refactors, and review passes.
+The MVP is intentionally narrow enough for 2 full-stack engineers in 10 weeks, assuming they use AI agents such as Codex or Claude Code to accelerate repetitive implementation work.
 
-Ownership split:
+Engineer ownership:
 
-- Engineer 1: Figma plugin UX, API client, browser handoff, apply actions, frontend states, Figma edge cases.
-- Engineer 2: backend API, auth/session exchange, tenant and brand policy, profile ingestion, model gateway, usage, audit, reporting, deployment.
-- Shared: contract design, security/privacy review, pilot metrics, release gates, and integration review.
+- Engineer 1: Figma plugin UX, selected-layer scanning, API client, auth handoff UI, preview/apply states, Figma edge cases, plugin packaging.
+- Engineer 2: deployed backend, SSO/session exchange, tenant and brand policy, brand profile ingestion, model gateway, image jobs, usage/cost/audit, deployment and monitoring.
+- Shared: API contracts, data model, security review, release gates, pilot metrics, quality evaluation, and incident runbooks.
 
-AI-agent acceleration helps with:
+AI-agent support:
 
-- generating contract tests and fixture coverage,
-- drafting API clients and typed schemas,
-- building local verification scripts,
-- running reviewer-style documentation passes,
-- exploring edge cases in parallel.
+- scaffold API routes and typed clients,
+- generate contract tests and fixtures,
+- draft migration and schema tests,
+- produce edge-case test matrices,
+- run documentation review passes,
+- create local verification scripts,
+- compare implementation against acceptance criteria.
 
-AI agents do not remove the need for human ownership of architecture, security, data isolation, release decisions, or final product trade-offs.
+Human-owned decisions:
+
+- architecture boundaries,
+- tenant isolation,
+- provider and data-retention policies,
+- model quality bar,
+- security review,
+- release approval,
+- pilot scope cuts.
 
 ### Short-Term Impact: Next 3 Months
 
-The short-term objective is not to build a perfect platform. It is to prove value quickly with current Figma users:
+The first 3 months should prove whether the workflow creates real value for current designers and brands.
 
-- reduce manual copy-variant and localization time,
-- keep work in Figma instead of forcing tool switching,
-- measure accepted/applied outputs, not just generated outputs,
-- expose cost per applied result,
-- learn which brand-profile rules improve quality,
-- identify whether image placeholders are useful enough to justify real provider spend.
+Expected impact:
 
-Success signals:
+- reduce manual copy variant work,
+- reduce localization handoff time,
+- keep designers inside Figma,
+- show which generated outputs are actually applied,
+- make provider spend visible by user, brand, and operation,
+- learn which brand profile rules improve output quality,
+- decide whether image replacement deserves real provider investment.
 
-- users apply generated copy in real design work,
-- localization review time drops,
-- profile-guided output requires fewer manual edits,
-- costs stay explainable per user and brand,
-- pilot teams ask to expand usage rather than avoid the workflow.
+The key is to measure applied output, not just generated output. A model can generate many options; the business value comes when designers use them.
 
 ### Long-Term Impact: 12+ Months
 
-The long-term objective is a licensable, multi-tenant creative AI platform:
+The 12+ month goal, realistically a 12-24 month platform build, is a multi-tenant platform that can be licensed to several companies and handle 100+ concurrent users.
 
-- several companies can have isolated tenants and brand profiles,
-- 100+ concurrent users can run copy, localization, and image jobs without plugin instability,
-- model providers can change without changing the Figma plugin contract,
-- usage and cost attribution support billing and customer success,
-- audit and data-retention controls support enterprise review,
-- new surfaces beyond Figma can reuse the same backend workflow APIs.
+Long-term architecture requirements:
 
-The architecture minimizes rework by making the MVP use production-shaped boundaries early: backend-owned policy, explicit API contracts, versioned profiles, async image jobs, usage metering, audit records, and a thin plugin that can evolve without owning sensitive logic.
+- horizontal API scaling,
+- queue-backed image and extraction jobs,
+- tenant-scoped Postgres data and object storage,
+- enterprise SSO and role management,
+- provider gateway with quality/cost routing,
+- audit and billing exports,
+- admin controls for quotas, retention, providers, and brand policies,
+- versioned plugin/backend contracts.
+
+### Minimizing Rework
+
+The main rework risk is building a quick plugin demo that later has to be thrown away. This plan avoids that by making the MVP use production-shaped boundaries from the start:
+
+- thin Figma plugin,
+- backend-owned model calls,
+- approved brand profiles,
+- explicit API contracts,
+- async image jobs,
+- usage and cost records,
+- apply-event audit trail,
+- tenant-scoped data model,
+- provider gateway abstraction,
+- deployed backend with health checks and rollback.
+
+The MVP can be narrow, but its boundaries should match the future platform. That lets the team add breadth later without replacing the core architecture.
+
+## 7. Role Of The Local Prototype
+
+The local prototype is included to make the architecture concrete and reviewable. It does not claim to be the deployed product.
+
+It demonstrates:
+
+- plugin-shaped selection and apply flow,
+- backend-owned policy and profile lookup,
+- model-gateway-shaped copy/localization calls,
+- async image job lifecycle,
+- usage and audit records,
+- local verification scripts.
+
+It intentionally does not prove:
+
+- live production model quality,
+- enterprise SSO integration,
+- cloud production reliability,
+- real provider image quality,
+- long-term multi-tenant operations.
+
+Those belong in the roadmap above. The prototype is useful because it tests whether the important architecture seams are in the right places before investing months in the full production system.
