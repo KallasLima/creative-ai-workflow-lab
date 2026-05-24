@@ -1,10 +1,10 @@
 # Reviewer Architecture Plan
 
-This is the production architecture plan for a real Figma-native AI workflow used by real designers, real brands, real model providers, and a deployed backend.
+This is the production architecture plan for a Figma-native AI workflow used by working designers, customer brands, live model providers, and a deployed backend.
 
 The local prototype in this repository is supporting evidence only. It shows that the core boundaries can run locally: Figma-facing workflow, backend-owned policy, brand profile lookup, model-like operations, image job lifecycle, usage metering, and audit records. It is not the product plan by itself.
 
-## 1. What The Real Product Does
+## 1. What The Product Does
 
 The product is an AI workflow embedded in Figma for creative teams.
 
@@ -85,37 +85,37 @@ Important production behavior:
 - The backend validates tenant, brand, user, locale, feature flag, quota, and layer type on every operation.
 - Brand profile data is created from customer brand guidelines and approved before runtime use. It is not a Figma-native object.
 - Copy and localization can be synchronous because designers expect fast text feedback.
-- Image generation is asynchronous because real image providers may be slow, expensive, rate-limited, or policy-gated.
+- Image generation is asynchronous because provider calls may be slow, expensive, rate-limited, or policy-gated.
 - Generated content is previewed first. It only counts as adopted when a designer applies it to the Figma canvas.
 - Usage, cost, and audit records are first-class product objects, not logs added later.
 
 ## 4. Technology Choices And Trade-Offs
 
-| Choice | Why It Fits The Real Product | Trade-Off | Mitigation |
+| Choice | Why It Fits The Product | Trade-Off | Mitigation |
 | --- | --- | --- | --- |
 | Figma plugin as primary UX | Designers already work in Figma; the plugin can read selected layers and apply output directly. | Plugin APIs constrain UI, auth, packaging, and background execution. | Keep plugin thin; move policy, model calls, persistence, and queues to the backend. |
 | Deployed backend trust boundary | Required for SSO, tenant isolation, provider credentials, quotas, usage, audit, and billing. | More work than a plugin-only proof. | Start with a narrow backend API and explicit contracts; avoid putting business logic in the plugin. |
 | OAuth/PKCE or SSO-backed plugin sessions | Enterprise customers need secure identity and workspace access control. | Figma plugin auth flows are more complex than ordinary web auth. | Backend-owned handoff, browser SSO completion, short-lived plugin tokens, refresh and revocation controls. |
-| Approved brand profile service | Real brands need governed tone, glossary, forbidden terms, locale rules, and visual notes. | Brand material is messy and requires review. | Convert PDFs/docs into draft profiles, require human approval, version profiles, support rollback. |
+| Approved brand profile service | Customer brands need governed tone, glossary, forbidden terms, locale rules, and visual notes. | Brand material is messy and requires review. | Convert PDFs/docs into draft profiles, require human approval, version profiles, support rollback. |
 | Model gateway | Allows provider abstraction, cost controls, policy routing, fallbacks, and quality evaluation. | Adds routing and observability work. | Normalize provider contracts behind one gateway and log model, prompt, cost, latency, and safety metadata. |
-| Async image pipeline | Real image generation is slower and riskier than text. It needs retries, moderation, asset storage, and apply metadata. | Users wait for images. | Keep text operations fast, show image status, notify on completion, and cache/reuse job results. |
+| Async image pipeline | Image generation is slower and riskier than text. It needs retries, moderation, asset storage, and apply metadata. | Users wait for images. | Keep text operations fast, show image status, notify on completion, and cache/reuse job results. |
 | Reference images in image generation | A reference image can make generated visuals more brand-specific by preserving product shape, color palette, composition, logo placement, or campaign style. Candidate API providers could include Nano Banana 2, the popular name for Google's Gemini 3.1 Flash Image model, or GPT-Image-2 from OpenAI, assuming those are the approved API models and terms at implementation time. | Reference images introduce rights, consent, privacy, retention, tenant-isolation, provider-training, and brand-safety risk. They can also increase latency, cost, and review burden. | Do not make arbitrary reference-image upload part of MVP. Start with approved visual notes and layer context. Add reference images only through a governed brand asset library with consent metadata, retention policy, provider allow/deny routing, and per-tenant storage controls. Verify exact provider model names, data-use terms, and safety policies during implementation because API model names and terms can change. |
 | Postgres for relational data | Tenants, users, brands, profiles, operations, usage, applies, and audits need durable relational consistency. | Requires migrations and careful indexing. | Keep schema explicit from MVP and optimize around tenant/user/brand/reporting queries. |
 | Object storage for generated assets | Image bytes and uploaded brand materials should not live in the database. | Requires retention, access, and lifecycle controls. | Tenant-scoped storage keys, signed URLs, retention policies, and audit metadata. |
 | Queue workers for image/PDF/model-heavy work | Protects API responsiveness and handles retries/rate limits. | Adds operational complexity. | Start with one worker queue and clear job states; add priority queues only after usage proves need. |
-| Real model providers in production | Needed to prove quality with real brands and designers. | Cost, latency, safety, and provider drift. | Golden samples, evaluation harness, provider routing, quotas, monitoring, and fallback models. |
+| Production model providers | Needed to prove quality with customer brands and designers. | Cost, latency, safety, and provider drift. | Golden samples, evaluation harness, provider routing, quotas, monitoring, and fallback models. |
 | AI-agent-assisted engineering | Codex/Claude Code-style agents can speed scaffolding, tests, docs, fixtures, and review loops. | Agents can create unreviewed complexity or false confidence. | Engineers retain ownership of architecture, security, quality gates, and release decisions. |
 
 ## 5. Phased Roadmap
 
 ### Phase 1: MVP In 10 Weeks
 
-Goal: ship a real deployed pilot for a narrow workflow, not a complete platform.
+Goal: ship a deployed pilot for a narrow workflow, not a complete platform.
 
 Target users:
 
-- a small group of real designers,
-- a limited set of real brands,
+- a small group of designers,
+- a limited set of customer brands,
 - controlled Figma files and campaign types,
 - production-like backend deployment with observability.
 
@@ -126,7 +126,7 @@ MVP scope:
 - Tenant, brand, and user authorization on every backend route.
 - Brand guideline ingestion from PDFs/docs into draft brand profiles.
 - Human-reviewed and approved brand profile versions.
-- Real text model calls through a backend model gateway for copy and localization.
+- Production text model calls through a backend model gateway for copy and localization.
 - Image placeholder or ideation image generation through a governed async image job pipeline.
 - Preview-before-apply UX.
 - Apply-event tracking so adopted output is distinct from generated output.
@@ -158,7 +158,7 @@ MVP risks and mitigations:
 
 | Risk | Mitigation |
 | --- | --- |
-| Model quality fails real brand review | Use approved profiles, golden samples, prompt/profile versions, and human pilot review. |
+| Model quality fails brand review | Use approved profiles, golden samples, prompt/profile versions, and human pilot review. |
 | Figma plugin edge cases slow delivery | Support a small set of layer types well; clearly reject unsupported layers. |
 | Provider latency hurts UX | Keep text operations synchronous under target latency; make images async with progress states. |
 | Cost tracking is incomplete | Make usage/cost writes blocking acceptance criteria for model operations. |
@@ -173,7 +173,7 @@ Beta scope:
 
 - Expand from the first pilot group to several teams or brands.
 - Add better brand profile review UX and rollback.
-- Add prompt/profile evaluation using real examples and designer feedback.
+- Add prompt/profile evaluation using pilot examples and designer feedback.
 - Add role-based access for brand owners, designers, and admins.
 - Add quotas and budget warnings.
 - Add provider-cost dashboards and cost-per-applied-output reporting.
@@ -239,7 +239,7 @@ Design choices:
 
 - The plugin reads selected layers and returns previews in context.
 - Text generation and localization are synchronous because designers expect fast copy feedback.
-- Image generation is asynchronous because real image providers can take longer and require policy checks.
+- Image generation is asynchronous because provider calls can take longer and require policy checks.
 - The plugin shows clear job states: queued, running, completed, failed, blocked by policy.
 - The designer decides what to apply; generation alone does not mutate the file.
 - Applied output is recorded after the canvas action, so reporting reflects actual adoption.
@@ -283,7 +283,7 @@ Human-owned decisions:
 
 ### Short-Term Impact: Next 3 Months
 
-The first 3 months should prove whether the workflow creates real value for current designers and brands.
+The first 3 months should prove whether the workflow creates measurable value for current designers and brands.
 
 Expected impact:
 
@@ -293,7 +293,7 @@ Expected impact:
 - show which generated outputs are actually applied,
 - make provider spend visible by user, brand, and operation,
 - learn which brand profile rules improve output quality,
-- decide whether image replacement deserves real provider investment.
+- decide whether image replacement deserves production provider investment.
 
 The key is to measure applied output, not just generated output. A model can generate many options; the business value comes when designers use them.
 
@@ -347,7 +347,7 @@ It intentionally does not prove:
 - live production model quality,
 - enterprise SSO integration,
 - cloud production reliability,
-- real provider image quality,
+- production provider image quality,
 - long-term multi-tenant operations.
 
 Those belong in the roadmap above. The prototype is useful because it tests whether the important architecture seams are in the right places before investing months in the full production system.

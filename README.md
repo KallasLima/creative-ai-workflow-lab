@@ -25,7 +25,7 @@ If you are reviewing the architecture plan first, start with [Reviewer Architect
 
 ## Fastest Demo Path
 
-Run `project/poc/scripts/run-demo.sh`, open `http://127.0.0.1:5173`, and follow the [Demo Guide](project/poc/demo/README.md). That path exercises the real local backend through the browser harness. The Figma development plugin is the primary designer workflow, and the browser harness exists so the same contracts can be verified repeatably without live Figma.
+Run `project/poc/scripts/run-demo.sh`, open `http://127.0.0.1:5173`, and follow the [Demo Guide](project/poc/demo/README.md). That path exercises the local backend through the browser harness. The Figma development plugin is the primary designer workflow, and the browser harness exists so the same contracts can be verified repeatably without live Figma.
 
 ## Project Map
 
