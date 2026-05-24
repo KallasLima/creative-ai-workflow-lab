@@ -60,6 +60,7 @@ Key design points:
 - Generated output is previewed first; it only becomes "used" when the designer applies it back to the canvas.
 - Usage and audit records are written for generation, asset creation, and apply events, which supports cost attribution and later compliance review.
 - Image replacement is asynchronous because production image generation can be slow, rate-limited, or policy-gated.
+- The MVP image path should use the approved brand profile's visual notes and the selected layer metadata, not arbitrary customer reference images. Reference images or brand asset libraries can be added later only after rights, consent, retention, and tenant-isolation controls are explicit.
 
 ## 3. Technology Choices And Trade-Offs
 
@@ -71,6 +72,7 @@ Key design points:
 | SQLite in local prototype, Postgres in production | SQLite makes the demo free and portable; Postgres is the production relational store for tenants, profiles, usage, and audit rows. | SQLite does not prove production concurrency. | Design schema and access patterns for Postgres; keep SQLite only as the local persistence adapter. |
 | Deterministic local model/image fixtures | Runs locally without paid API keys and gives repeatable verification. | Does not prove live model quality. | Add model-gateway abstraction, golden samples, evaluation gates, and later provider A/B tests. |
 | Async image jobs | Matches real provider latency, safety review, retries, and asset storage. | Slightly more UX complexity than a synchronous button. | Show queued/running/completed states and keep copy/localization synchronous for speed. |
+| No reference-image upload in MVP | Reduces rights, privacy, storage, and provider-policy risk while still proving image replacement workflow. | Generated placeholders are less brand-specific than a true reference-image workflow. | Use approved visual notes first; add governed brand asset/reference libraries in Beta or full rollout. |
 | Browser harness as fallback demo | Lets reviewers run the backend contract without Figma setup. | Could be mistaken for the primary product. | README and demo docs explicitly say the Figma plugin is the primary designer workflow. |
 
 ## 4. Phased Roadmap
@@ -85,6 +87,7 @@ Scope:
 - OAuth/PKCE-shaped plugin session exchange and tenant/brand authorization.
 - Approved brand profile lookup from uploaded guideline material.
 - Copy variants, 8-locale localization, and async image placeholder jobs.
+- Image prompts based on approved visual notes and layer context, without uploading reference images to providers.
 - Preview before apply, apply-event recording, usage metering, and audit trail.
 - Basic reporting by user, tenant, brand, operation, estimated cost, and apply rate.
 - Local and CI-style verification for API contracts, frontend harness, latency, and visual smoke.
@@ -107,6 +110,7 @@ Scope:
 - Pilot with a few teams and brands already using Figma.
 - Measure apply rate, time saved per asset, localization rework, cost per accepted output, provider error rate, image-job completion, and profile approval latency.
 - Add role-based brand access, quota controls, prompt/profile rollback, and basic admin review.
+- Decide whether governed brand asset libraries or reference images are needed for stronger image specificity.
 - Improve model quality using real feedback loops, not only prompt intuition.
 - Harden monitoring, alerts, retry behavior, and support runbooks.
 
@@ -116,6 +120,7 @@ Beta risks and mitigations:
 | --- | --- |
 | Users like generation but do not apply outputs | Track preview-to-apply funnel and talk to low-apply users. |
 | Localization creates brand or legal risk | Require approved locale list, profile constraints, and human review for sensitive brands. |
+| Reference images introduce rights or privacy risk | Keep them out of MVP; add only with consent metadata, storage policy, and provider-routing controls. |
 | Provider latency hurts the Figma flow | Keep copy/localization under the synchronous latency target; keep image generation async with visible status. |
 | Pilot metrics are ambiguous | Define success before rollout: adoption, apply rate, time saved, cost per applied output, quality-review pass rate. |
 
@@ -127,6 +132,7 @@ Scope:
 
 - Multi-tenant workspace model with strict tenant isolation, tenant-level quotas, brand libraries, and billing exports.
 - Provider gateway supporting multiple text and image models, policy routing, fallbacks, and cost controls.
+- Optional governed brand asset/reference-image library with per-tenant isolation, consent metadata, expiration, and provider allow/deny routing.
 - Postgres, object storage, queue workers, horizontal API scaling, and regional availability where needed.
 - Enterprise SSO, audit exports, data retention policies, admin controls, and security review.
 - Plugin contract versioning so old plugin clients do not break when backend features evolve.
