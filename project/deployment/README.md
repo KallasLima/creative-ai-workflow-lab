@@ -14,19 +14,19 @@ It does not require a paid cloud account. It proves the deployable unit that a f
 ## Verify
 
 ```sh
-scripts/verify-deployment-proof.sh
+project/poc/scripts/verify-all.sh
 ```
 
-To prove the backend entrypoint, health check, and persisted state behavior without a cloud account or local Docker daemon, run:
-
-```sh
-scripts/verify-deployment-runtime-smoke.sh
-```
-
-The runtime smoke starts the same FastAPI app with deployed-style `POC_DB_PATH`, runs the API verifier against that runtime, and confirms tenant, model-quality, and usage records were written to the mounted-data analogue.
+The all-up verifier starts the same FastAPI app, runs the API verifier against it, confirms persisted tenant/model-quality/usage records, then runs the browser-harness build and real-backend smoke.
 
 If Docker is available, the same files can be run with:
 
 ```sh
 docker compose -f project/deployment/docker-compose.yml up --build
+```
+
+Then check:
+
+```sh
+curl http://127.0.0.1:8000/health
 ```

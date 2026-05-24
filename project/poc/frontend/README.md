@@ -18,7 +18,7 @@ It is not the primary designer UX. The canonical designer workflow proof is the 
 
 ```sh
 cd project/poc/frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -51,7 +51,7 @@ The client preserves:
 
 ```sh
 cd project/poc/frontend
-npm install
+npm ci
 npm run build
 npm run smoke
 ```

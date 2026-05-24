@@ -31,10 +31,6 @@ Stop both with `Ctrl-C`.
 9. Apply one output.
 10. Open `Report`; show operation count, estimated cost, apply event, and audit event.
 
-## Capture Evidence
-
-If you want a lightweight written record after the run, fill in `project/poc/demo/demo-run-log-template.md` with the mode, proof points, cleanup status, and any issues you had to fix.
-
 ## Closing Line
 
 This is not a production MVP or the main product surface. It is a runnable fallback proof of the seams: plugin workflow, backend policy, profile versioning, model boundary, async jobs, usage metering, and auditability.

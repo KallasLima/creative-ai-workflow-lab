@@ -33,6 +33,14 @@ This plan assumes 2 full-stack engineers using modern AI-assisted development to
 - Validate quality, latency, adoption, apply rate, and unit economics.
 - Fix expansion blockers or cut scope before broader rollout.
 
+## Release And Availability Plan
+
+- Deploy backend changes through a container image with `/health` and contract smoke checks before exposing the change.
+- Release plugin UI changes behind a backend feature flag when behavior depends on new API support.
+- Keep rollback under 12 hours by preserving the previous backend image, disabling risky feature flags, and keeping old plugin contracts compatible for the pilot window.
+- Track availability through API health, provider error rate, queue age, image job completion, apply-event write success, and usage-report freshness.
+- Treat missing usage/audit writes, tenant-isolation failures, or provider credential exposure as release blockers.
+
 ## Cut Order
 
 Cut admin polish, advanced analytics, self-service tenant onboarding, and image breadth before cutting auth, tenant isolation, usage metering, audit trails, or profile governance.

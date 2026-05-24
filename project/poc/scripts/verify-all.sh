@@ -194,7 +194,7 @@ if [ -d "$FRONTEND" ]; then
       exit 1
     fi
     echo "[verify-all] frontend install"
-    npm --prefix "$FRONTEND" install
+    npm --prefix "$FRONTEND" ci
     echo "[verify-all] frontend smoke"
     npm --prefix "$FRONTEND" run smoke
     echo "[verify-all] frontend build"

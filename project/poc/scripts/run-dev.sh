@@ -12,7 +12,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 if [ ! -d node_modules ]; then
-  npm install
+  npm ci
 fi
 
 if [ -n "${VITE_API_BASE_URL:-}" ]; then

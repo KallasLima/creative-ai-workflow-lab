@@ -10,7 +10,7 @@ Local runnable proof for a Figma-native creative AI workflow. It includes a back
 - `contracts/`: route and payload references.
 - `fixtures/`: seeded selection, brand guideline sample, model-quality golden samples, and report fixtures.
 - `scripts/`: backend verifier, all-up verifier, and real-backend smoke scripts.
-- `demo/`: demo checklist and evidence templates.
+- `demo/`: concise local demo guide.
 
 ## Backend Only
 
@@ -51,11 +51,7 @@ Use this path for deterministic automated checks or when Figma is unavailable:
 project/poc/scripts/run-demo.sh
 ```
 
-Open `http://localhost:5173`, then follow:
-
-- `project/poc/demo/demo-quickstart.md`
-- `project/poc/demo/evidence-checklist.md`
-- `project/poc/demo/demo-run-log-template.md`
+Open `http://localhost:5173`, then follow `project/poc/demo/README.md`.
 
 Stop with `Ctrl-C`.
 

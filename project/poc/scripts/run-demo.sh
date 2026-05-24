@@ -16,7 +16,6 @@ BACKEND_LOG=""
 FRONTEND_LOG=""
 BACKEND_PID=""
 FRONTEND_PID=""
-EVIDENCE_TEMPLATE="$POC/demo/demo-run-log-template.md"
 SMOKE_MODE="0"
 LOCK_DIR="$POC/.run-lock"
 LOCK_ACQUIRED="0"
@@ -217,7 +216,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 if [ ! -d "$FRONTEND/node_modules" ]; then
-  npm --prefix "$FRONTEND" install
+  npm --prefix "$FRONTEND" ci
 fi
 
 echo "[run-demo] starting backend at $API_URL"
@@ -229,8 +228,7 @@ wait_for_http "$API_URL/health" "backend" "$BACKEND_LOG"
 cat <<EOF
 [run-demo] backend ready: $API_URL
 [run-demo] browser fallback harness target: $FRONTEND_URL
-[run-demo] checklist: project/poc/demo/demo-quickstart.md
-[run-demo] evidence template: $EVIDENCE_TEMPLATE
+[run-demo] demo guide: project/poc/demo/README.md
 [run-demo] stop backend and browser fallback harness with Ctrl-C
 EOF
 

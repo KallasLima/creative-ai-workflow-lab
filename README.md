@@ -4,6 +4,8 @@ Creative AI Workflow Lab is a local prototype for an AI-assisted design workflow
 
 The project is intentionally local-first. The model and image outputs are deterministic fixtures, while the backend, persistence, API contracts, Figma plugin bridge, browser fallback harness, and verification scripts are executable.
 
+This is best read as a runnable architecture slice: it proves the workflow seams that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
+
 ## What It Demonstrates
 
 - A Figma development plugin that reads selected layers, previews generated outputs, and applies copy or image fills.

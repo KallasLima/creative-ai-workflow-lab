@@ -36,3 +36,11 @@ The local proof uses FastAPI, SQLite, and deterministic providers. A production 
 - Local auth fixtures to OAuth or SSO-backed plugin sessions.
 
 The key design choice is that generated content never bypasses backend policy, metering, or audit controls.
+
+## Availability And Release Shape
+
+The production target is 99% availability for the MVP workflow and a release process that can ship or roll back a change in less than 12 hours.
+
+The architecture supports that target by keeping the plugin thin, backend APIs versioned, and long-running image work asynchronous. A normal release can deploy backend and plugin changes behind feature flags, verify `/health`, run contract smoke checks, and roll back by disabling the flag or redeploying the previous backend image. Generated assets, usage events, and audit records are durable backend data, so a plugin UI rollback does not erase operational evidence.
+
+For scaling, stateless API instances sit behind a load balancer, Postgres owns transactional records, object storage owns generated assets and uploaded guidelines, and queue workers absorb image/PDF spikes. The local proof keeps those seams explicit even though it runs on one machine.
