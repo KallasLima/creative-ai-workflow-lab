@@ -1,10 +1,31 @@
 # Runnable Local Prototype
 
+This document explains the local prototype that supports [Reviewer Architecture Plan](reviewer-architecture-plan.md). The prototype is evidence for the architecture boundaries; it is not the production delivery plan.
+
 The local prototype has 3 layers:
 
 - Figma development plugin.
 - FastAPI backend with SQLite persistence.
 - Browser fallback harness for repeatable verification.
+
+## What It Demonstrates
+
+- Plugin-shaped selection, preview, and apply flow.
+- Backend-owned policy and brand profile lookup.
+- Model-gateway-shaped copy and localization calls.
+- Async image job lifecycle.
+- Usage and audit records.
+- Local verification scripts.
+
+## What It Does Not Prove
+
+- Production model quality.
+- Enterprise SSO integration.
+- Cloud reliability.
+- Provider image quality.
+- Long-term multi-tenant operations.
+
+Those belong in the production roadmap in [Reviewer Architecture Plan](reviewer-architecture-plan.md#5-phased-roadmap).
 
 ## Full Verification
 
@@ -12,7 +33,7 @@ The local prototype has 3 layers:
 project/poc/scripts/verify-all.sh
 ```
 
-This runs backend tests, starts the backend, verifies API contracts, runs the latency benchmark, installs and builds the frontend harness, runs a real-backend smoke test, and runs a browser visual smoke test.
+This runs backend tests, starts the backend, verifies API contracts, runs the latency benchmark, installs and builds the frontend harness, runs a backend-connected smoke test, and runs a browser visual smoke test.
 
 ## Manual Demo
 

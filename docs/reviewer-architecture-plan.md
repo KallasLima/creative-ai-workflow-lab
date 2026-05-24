@@ -32,7 +32,21 @@ The plugin is intentionally thin. It owns designer interaction, selected-layer c
 | Long-term 12+ month multi-tenant platform path | [Long-Term Impact](#long-term-impact-12-months) |
 | 100+ concurrent users and minimized rework | [Long-Term Impact](#long-term-impact-12-months) and [Minimizing Rework](#minimizing-rework) |
 
+## 2.1 Detailed Document Map
+
+This file is the main reviewer-facing plan. The supporting documents below expand specific parts of the same architecture:
+
+| Detail Document | Use It For |
+| --- | --- |
+| [Architecture](architecture.md) | System components, backend trust boundary, availability target, scale path, and production responsibilities. |
+| [Diagrams](diagrams.md) | System context, runtime sequence, image job lifecycle, and brand profile lifecycle diagrams. |
+| [Delivery Plan](delivery-plan.md) | 10-week MVP execution plan, next-3-month Beta, 12+ month rollout path, team split, and release strategy. |
+| [Trade-offs And Risks](tradeoffs-and-risks.md) | Technology choices, reference-image policy, provider trade-offs, and risk mitigations. |
+| [Runnable Local Prototype](runnable-local-prototype.md) | What the local demo proves, what it does not prove, and how to verify the runnable slice. |
+
 ## 3. Production Data Flow: Localize Copy And Replace Images
+
+For related diagrams, see [Diagrams](diagrams.md). For component responsibilities, see [Architecture](architecture.md).
 
 Example request: a designer is working on a campaign in Figma. They select a CTA text layer and a 1024x1024 product-image placeholder, then ask the plugin to localize the CTA and create a brand-appropriate replacement image.
 
@@ -91,6 +105,8 @@ Important production behavior:
 
 ## 4. Technology Choices And Trade-Offs
 
+For the expanded decision log and risk matrix, see [Trade-offs And Risks](tradeoffs-and-risks.md).
+
 | Choice | Why It Fits The Product | Trade-Off | Mitigation |
 | --- | --- | --- | --- |
 | Figma plugin as primary UX | Designers already work in Figma; the plugin can read selected layers and apply output directly. | Plugin APIs constrain UI, auth, packaging, and background execution. | Keep plugin thin; move policy, model calls, persistence, and queues to the backend. |
@@ -107,6 +123,8 @@ Important production behavior:
 | AI-agent-assisted engineering | Codex/Claude Code-style agents can speed scaffolding, tests, docs, fixtures, and review loops. | Agents can create unreviewed complexity or false confidence. | Engineers retain ownership of architecture, security, quality gates, and release decisions. |
 
 ## 5. Phased Roadmap
+
+For the implementation timeline, team split, release strategy, and cut-order details, see [Delivery Plan](delivery-plan.md).
 
 ### Phase 1: MVP In 10 Weeks
 
@@ -330,6 +348,8 @@ The main rework risk is building a quick plugin demo that later has to be thrown
 The MVP can be narrow, but its boundaries should match the future platform. That lets the team add breadth later without replacing the core architecture.
 
 ## 7. Role Of The Local Prototype
+
+For run commands and verification scope, see [Runnable Local Prototype](runnable-local-prototype.md).
 
 The local prototype is included to make the architecture concrete and reviewable. It does not claim to be the deployed product.
 
