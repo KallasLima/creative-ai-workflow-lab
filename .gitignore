@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+dist/
+node_modules/
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+project/poc/.run-lock/
+project/poc/backend/.data/
+project/poc/backend/.venv/
+project/poc/frontend/dist/
+project/poc/frontend/node_modules/

@@ -1,0 +1,27 @@
+{
+  "requestId": "req_usage_001",
+  "summary": {
+    "operationCount": 3,
+    "appliedCount": 1,
+    "estimatedCostUsd": 0.036,
+    "medianTextLatencyMs": 610,
+    "imageJobFailureRate": 0,
+    "totalOperations": 4,
+    "totalEstimatedCostUsd": 0.036,
+    "copyOperations": 1,
+    "localizationOperations": 1,
+    "imageJobs": 1,
+    "applyEvents": 1
+  },
+  "groups": [
+    { "userId": "usr_maya", "brandId": "brand_nova", "operationType": "copy", "operationCount": 1, "estimatedCostUsd": 0.012 },
+    { "userId": "usr_maya", "brandId": "brand_nova", "operationType": "localization", "operationCount": 1, "estimatedCostUsd": 0.009 },
+    { "userId": "usr_maya", "brandId": "brand_nova", "operationType": "image", "operationCount": 1, "estimatedCostUsd": 0.015 }
+  ],
+  "byUser": [
+    { "userId": "usr_maya", "displayName": "Maya Chen", "operations": 3, "estimatedCostUsd": 0.036 }
+  ],
+  "recentAuditEvents": [
+    { "auditEventId": "audit_apply_001", "type": "apply_recorded", "operationId": "op_copy_001", "createdAt": "2026-05-23T12:00:00Z" }
+  ]
+}

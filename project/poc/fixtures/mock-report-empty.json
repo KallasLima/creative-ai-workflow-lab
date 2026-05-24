@@ -1,0 +1,21 @@
+{
+  "requestId": "req_usage_001",
+  "summary": {
+    "operationCount": 0,
+    "appliedCount": 0,
+    "estimatedCostUsd": 0,
+    "medianTextLatencyMs": 610,
+    "imageJobFailureRate": 0,
+    "totalOperations": 0,
+    "totalEstimatedCostUsd": 0,
+    "copyOperations": 0,
+    "localizationOperations": 0,
+    "imageJobs": 0,
+    "applyEvents": 0
+  },
+  "groups": [],
+  "byUser": [
+    { "userId": "usr_maya", "displayName": "Maya Chen", "operations": 0, "estimatedCostUsd": 0 }
+  ],
+  "recentAuditEvents": []
+}

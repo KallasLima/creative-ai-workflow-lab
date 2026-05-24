@@ -1,0 +1,34 @@
+{
+  "threshold": 0.9,
+  "provider": "mock-provider",
+  "model": "mock-gpt-4o-equivalent",
+  "samples": [
+    {
+      "sampleId": "golden_copy_headline_001",
+      "operationType": "copy",
+      "layerId": "txt_headline",
+      "inputText": "Run further with gear built for spring.",
+      "requiredTerms": ["spring", "miles"],
+      "bannedPhrases": ["cheap", "miracle"],
+      "maxCharacters": 72
+    },
+    {
+      "sampleId": "golden_copy_cta_001",
+      "operationType": "copy",
+      "layerId": "txt_cta",
+      "inputText": "Shop the drop",
+      "requiredTerms": ["shop"],
+      "bannedPhrases": ["cheap", "miracle"],
+      "maxCharacters": 28
+    },
+    {
+      "sampleId": "golden_localize_cta_001",
+      "operationType": "localization",
+      "layerId": "txt_cta",
+      "inputText": "Shop the drop",
+      "requiredLocales": ["fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "nl-NL", "ja-JP", "ko-KR"],
+      "bannedPhrases": ["cheap", "miracle"],
+      "maxCharacters": 28
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "fileId": "fig_demo_campaign",
+  "pageId": "page_mobile_ads",
+  "selectionId": "sel_spring_launch",
+  "layers": [
+    {
+      "layerId": "txt_headline",
+      "type": "text",
+      "name": "Headline",
+      "text": "Run further with gear built for spring.",
+      "style": { "fontSize": 42, "maxCharacters": 72 }
+    },
+    {
+      "layerId": "txt_cta",
+      "type": "text",
+      "name": "CTA",
+      "text": "Shop the drop",
+      "style": { "fontSize": 18, "maxCharacters": 28 }
+    },
+    {
+      "layerId": "img_hero",
+      "type": "imageFill",
+      "name": "Hero Product Placeholder",
+      "dimensions": { "width": 1024, "height": 1024 }
+    }
+  ]
+}

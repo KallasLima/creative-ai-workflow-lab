@@ -1,0 +1,342 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font: 12px Inter, sans-serif;
+        color: var(--figma-color-text, #1f2933);
+        background: var(--figma-color-bg, #ffffff);
+      }
+      button {
+        border: 1px solid var(--figma-color-border, #d9dee8);
+        background: var(--figma-color-bg-brand, #0d99ff);
+        color: var(--figma-color-text-onbrand, #ffffff);
+        border-radius: 6px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: var(--figma-color-bg-secondary, #f5f6f8);
+        color: var(--figma-color-text, #1f2933);
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+      .panel {
+        border: 1px solid var(--figma-color-border, #d9dee8);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--figma-color-border, #eef1f6);
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      code {
+        font-size: 11px;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .result {
+        display: grid;
+        gap: 8px;
+      }
+      .result button {
+        text-align: left;
+      }
+      .warn {
+        color: var(--figma-color-text-warning, #8a5a00);
+      }
+    </style>
+  </head>
+  <body>
+    <section class="panel">
+      <strong>Nova Campaign Assistant</strong>
+      <p>Real local Figma development plugin proof. Backend calls stay on <code>localhost:8000</code>; image output is a mocked 1024 x 1024 placeholder.</p>
+      <button id="fixture" class="secondary">Create local proof selection</button>
+      <button id="auth">Start backend auth handoff</button>
+    </section>
+    <section class="panel">
+      <strong>Selected layers</strong>
+      <div id="layers">No selection received yet.</div>
+    </section>
+    <section class="panel">
+      <strong>Generate and apply</strong>
+      <p>Use selected text layers and one 1024 x 1024 fill-capable layer.</p>
+      <div class="actions">
+        <button id="copy" disabled>Generate copy</button>
+        <button id="localize" disabled>Localize CTA</button>
+        <button id="image" disabled>Create mock image</button>
+        <button id="apply-image" class="secondary" disabled>Apply image fill</button>
+      </div>
+    </section>
+    <section class="panel">
+      <strong>Generated outputs</strong>
+      <div class="result" id="outputs">Pair with the backend first.</div>
+    </section>
+    <section class="panel">
+      <strong>Backend proof</strong>
+      <pre id="proof">Waiting.</pre>
+    </section>
+    <script>
+      const layers = document.getElementById("layers");
+      const proof = document.getElementById("proof");
+      const outputs = document.getElementById("outputs");
+      const fixtureButton = document.getElementById("fixture");
+      const authButton = document.getElementById("auth");
+      const copyButton = document.getElementById("copy");
+      const localizeButton = document.getElementById("localize");
+      const imageButton = document.getElementById("image");
+      const applyImageButton = document.getElementById("apply-image");
+      let latestSelection = [];
+      let currentUser = null;
+      let session = null;
+      let latestImageAsset = null;
+
+      const contract = {
+        contractVersion: "2026-05-poc",
+        pluginVersion: "0.1.0",
+        tenantId: "tenant_designtechco",
+        brandId: "brand_nova",
+        profileId: "profile_nova_v3",
+        campaign: "Spring Launch",
+        channel: "mobile",
+      };
+
+      function setProof(value) {
+        proof.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      }
+
+      function supportedTextLayers() {
+        return latestSelection.filter((layer) => layer.type === "text" && layer.supported);
+      }
+
+      function supportedImageLayer() {
+        return latestSelection.find((layer) => layer.type === "imageFill" && layer.supported && layer.dimensions);
+      }
+
+      function authHeaders(extra = {}) {
+        return {
+          ...extra,
+          authorization: `Bearer ${session.accessToken}`,
+        };
+      }
+
+      async function readJson(response) {
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error?.message || `Backend returned ${response.status}`);
+        }
+        return payload;
+      }
+
+      function refreshButtons() {
+        const signedIn = Boolean(session);
+        copyButton.disabled = !signedIn || supportedTextLayers().length === 0;
+        localizeButton.disabled = !signedIn || supportedTextLayers().length === 0;
+        imageButton.disabled = !signedIn || !supportedImageLayer();
+        applyImageButton.disabled = !signedIn || !latestImageAsset || !supportedImageLayer();
+      }
+
+      window.onmessage = (event) => {
+        const message = event.data.pluginMessage;
+        if (!message || message.type !== "selection") return;
+        latestSelection = message.layers || [];
+        currentUser = message.currentUser || null;
+        layers.innerHTML = latestSelection
+          .map((layer) => `<div class="row"><span>${layer.name}</span><code>${layer.type}${layer.supported ? "" : " ignored"}</code></div>`)
+          .join("") || "No layers selected.";
+        refreshButtons();
+      };
+
+      fixtureButton.onclick = () => {
+        parent.postMessage({ pluginMessage: { type: "create-fixture" } }, "*");
+        setProof({ status: "creating_fixture", expectedSelection: ["text", "text", "imageFill"] });
+      };
+
+      authButton.onclick = async () => {
+        try {
+          const start = await fetch("http://localhost:8000/auth/plugin/start", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              ...contract,
+              localNonce: "demo_nonce",
+              figmaUserHint: currentUser ? `${currentUser.id}:${currentUser.name}` : "figma-dev-plugin",
+            }),
+          }).then(readJson);
+          const exchange = await fetch("http://localhost:8000/auth/plugin/exchange", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ ...contract, requestId: start.requestId, localNonce: "demo_nonce" }),
+          }).then(readJson);
+          session = exchange.session;
+          setProof({
+            status: "paired",
+            authRequestId: start.requestId,
+            sessionExpiresAt: exchange.session.expiresAt,
+            figmaUserSeen: Boolean(currentUser),
+            selectedLayers: latestSelection.length,
+          });
+          outputs.textContent = "Backend paired. Generate copy or a mocked image placeholder.";
+          refreshButtons();
+        } catch (error) {
+          setProof({ status: "auth_failed", error: String(error.message || error) });
+        }
+      };
+
+      copyButton.onclick = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/plugin/copy/generate", {
+            method: "POST",
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-copy-proof-001" }),
+            body: JSON.stringify({
+              ...contract,
+              clientRequestId: "figma_copy_001",
+              variantCount: 3,
+              layers: supportedTextLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
+            }),
+          }).then(readJson);
+          outputs.innerHTML = response.results
+            .flatMap((result) => result.variants.map((variant) => ({ ...variant, layerId: result.layerId })))
+            .map(
+              (variant) =>
+                `<button class="secondary" data-layer="${variant.layerId}" data-text="${variant.text.replaceAll('"', "&quot;")}">Apply copy: ${variant.text}</button>`,
+            )
+            .join("");
+          outputs.querySelectorAll("button[data-layer]").forEach((button) => {
+            button.onclick = async () => {
+              parent.postMessage({ pluginMessage: { type: "apply-copy", layerId: button.dataset.layer, text: button.dataset.text } }, "*");
+              await recordApply("op_copy_001", button.dataset.layer, "copy", "v1");
+            };
+          });
+          setProof({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+        } catch (error) {
+          setProof({ status: "copy_failed", error: String(error.message || error) });
+        }
+      };
+
+      localizeButton.onclick = async () => {
+        try {
+          const response = await fetch("http://localhost:8000/plugin/copy/localize", {
+            method: "POST",
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-localize-proof-001" }),
+            body: JSON.stringify({
+              ...contract,
+              clientRequestId: "figma_localize_001",
+              locales: ["fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "nl-NL", "ja-JP", "ko-KR"],
+              layers: supportedTextLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
+            }),
+          }).then(readJson);
+          const first = response.results[0]?.localizations[0];
+          outputs.innerHTML = first
+            ? `<button class="secondary" data-layer="${response.results[0].layerId}" data-text="${first.text.replaceAll('"', "&quot;")}">Apply ${first.locale}: ${first.text}</button>`
+            : "No localization returned.";
+          outputs.querySelectorAll("button[data-layer]").forEach((button) => {
+            button.onclick = async () => {
+              parent.postMessage({ pluginMessage: { type: "apply-copy", layerId: button.dataset.layer, text: button.dataset.text } }, "*");
+              await recordApply("op_loc_001", button.dataset.layer, "copy", "locale_fr-FR");
+            };
+          });
+          setProof({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+        } catch (error) {
+          setProof({ status: "localize_failed", error: String(error.message || error) });
+        }
+      };
+
+      imageButton.onclick = async () => {
+        try {
+          const imageLayer = supportedImageLayer();
+          const start = await fetch("http://localhost:8000/plugin/images/jobs", {
+            method: "POST",
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-image-proof-001" }),
+            body: JSON.stringify({
+              ...contract,
+              clientRequestId: "figma_image_001",
+              layer: {
+                layerId: imageLayer.layerId,
+                name: imageLayer.name,
+                type: "imageFill",
+                dimensions: imageLayer.dimensions,
+              },
+              prompt: "Energetic ecommerce product placeholder for Nova Athletics spring running gear",
+            }),
+          }).then(readJson);
+          let completed = null;
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            completed = await fetch(`http://localhost:8000/plugin/images/jobs/${start.jobId}`, {
+              headers: authHeaders(),
+            }).then(readJson);
+          }
+          latestImageAsset = completed.asset;
+          outputs.innerHTML = latestImageAsset
+            ? `<div>Mock image ready: <code>${latestImageAsset.width} x ${latestImageAsset.height}</code>, <code>placeholderOnly: true</code>, <code>${latestImageAsset.rightsStatus}</code></div>`
+            : `<div class="warn">Image job did not complete.</div>`;
+          setProof({
+            status: completed.status,
+            jobId: completed.jobId,
+            usageEventId: completed.usageEventId,
+            placeholderOnly: completed.asset?.placeholderOnly,
+            rightsStatus: completed.asset?.rightsStatus,
+            safetyStatus: completed.asset?.safetyStatus,
+          });
+          refreshButtons();
+        } catch (error) {
+          setProof({ status: "image_failed", error: String(error.message || error) });
+        }
+      };
+
+      applyImageButton.onclick = async () => {
+        try {
+          const imageLayer = supportedImageLayer();
+          const buffer = await fetch(latestImageAsset.url).then((response) => response.arrayBuffer());
+          const bytes = new Uint8Array(buffer);
+          let binary = "";
+          bytes.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+          });
+          parent.postMessage(
+            { pluginMessage: { type: "apply-image", layerId: imageLayer.layerId, imageBytesBase64: btoa(binary) } },
+            "*",
+          );
+          await recordApply("job_img_001", imageLayer.layerId, "image", latestImageAsset.assetId);
+        } catch (error) {
+          setProof({ status: "apply_image_failed", error: String(error.message || error) });
+        }
+      };
+
+      async function recordApply(operationId, layerId, outputType, outputId) {
+        const response = await fetch("http://localhost:8000/plugin/apply-events", {
+          method: "POST",
+          headers: authHeaders({ "content-type": "application/json" }),
+          body: JSON.stringify({
+            operationId,
+            appliedBy: "usr_maya",
+            figmaFileKey: "local_figma_file",
+            appliedItems: [{ layerId, outputId, outputType }],
+          }),
+        }).then(readJson);
+        setProof({
+          applyEventId: response.applyEventId,
+          auditEventId: response.auditEventId,
+          operationId,
+          layerId,
+          outputType,
+        });
+      }
+    </script>
+  </body>
+</html>
