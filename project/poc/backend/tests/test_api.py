@@ -187,6 +187,29 @@ def test_auth_context_selection_and_profile(tmp_path: Path) -> None:
     assert approval["status"] == "active"
 
 
+def test_backend_has_layered_structure() -> None:
+    backend_app = Path(__file__).resolve().parents[1] / "app"
+    expected_modules = [
+        "factory.py",
+        "api/router.py",
+        "api/routes/auth.py",
+        "api/routes/brand_profiles.py",
+        "api/routes/plugin_operations.py",
+        "core/security.py",
+        "core/errors.py",
+        "domain/image_policy.py",
+        "providers/mock_model_gateway.py",
+        "services/brand_profiles.py",
+        "services/image_jobs.py",
+        "services/model_operations.py",
+        "services/model_quality.py",
+        "services/usage_reports.py",
+    ]
+    missing = [module for module in expected_modules if not (backend_app / module).exists()]
+    assert missing == []
+    assert (backend_app / "main.py").read_text().count("\n") <= 5
+
+
 def test_real_pdf_extraction_and_multi_tenant_admin_operations(tmp_path: Path) -> None:
     api = client(tmp_path)
 

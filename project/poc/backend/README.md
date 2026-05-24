@@ -2,6 +2,27 @@
 
 FastAPI backend for the local creative AI workflow slice. It owns the trust boundary: session exchange, tenant and brand policy, PDF extraction, profile versioning, model orchestration, quality checks, image jobs, metering, audit records, and reporting.
 
+## Structure
+
+The backend is intentionally organized like a small production service rather than a single-script demo:
+
+```text
+app/
+  main.py              ASGI entrypoint
+  factory.py           FastAPI app factory, middleware, exception handlers
+  api/
+    router.py          Router composition
+    routes/            Endpoint groups by product capability
+  core/                Config constants, auth/session helpers, error envelope
+  domain/              Pure policy rules, such as image-prompt governance
+  providers/           Model/provider gateway adapters
+  services/            Use-case orchestration and persistence coordination
+  db.py                SQLite schema and seed data for the local slice
+  png.py               Deterministic placeholder asset generation
+```
+
+The local implementation still uses SQLite and deterministic providers, but the code boundaries mirror the target architecture: API routes stay thin, services own use cases, domain modules own policy, provider adapters isolate model behavior, and the database module owns local persistence setup.
+
 ## Start
 
 ```sh
