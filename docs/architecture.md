@@ -33,9 +33,11 @@ The local prototype uses FastAPI, SQLite, and deterministic providers. A product
 - Local file assets to private object storage.
 - Deterministic provider to a model gateway.
 - Local polling to queue workers.
-- Local auth fixtures to OAuth or SSO-backed plugin sessions.
+- Local deterministic credentials to OAuth/PKCE or SSO-backed plugin sessions.
 
 The key design choice is that generated content never bypasses backend policy, metering, or audit controls.
+
+In production, the plugin would start a backend-owned OAuth/PKCE handoff, the browser would complete SSO, and the backend would exchange the verifier for a scoped plugin session. The local implementation keeps that same start/exchange/token boundary so the plugin never stores provider credentials and every model operation is tied back to a user, tenant, brand, and profile.
 
 ## Availability And Release Shape
 

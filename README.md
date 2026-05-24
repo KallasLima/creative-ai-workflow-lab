@@ -9,10 +9,14 @@ This is best read as a runnable architecture slice: it demonstrates the workflow
 ## What It Demonstrates
 
 - A Figma development plugin that reads selected layers, previews generated outputs, and applies copy or image fills.
-- A FastAPI backend that owns auth/session exchange, tenant and brand policy, prompt/profile context, model orchestration, PDF extraction, image job lifecycle, usage metering, and audit trails.
+- A FastAPI backend that owns OAuth/PKCE-shaped session exchange, tenant and brand policy, prompt/profile context, model orchestration, PDF extraction, image job lifecycle, usage metering, and audit trails.
 - A browser fallback harness for running the same workflow without Figma during local verification.
 - A deployable backend shape with a Dockerfile, compose file, health check, and persistent data path.
 - A 10-week delivery plan and architecture notes for turning the local prototype into a production-grade workflow.
+
+## Fastest Demo Path
+
+Run `project/poc/scripts/run-demo.sh`, open `http://127.0.0.1:5173`, and follow the [Demo Guide](project/poc/demo/README.md). That path exercises the real local backend through the browser harness. The Figma development plugin is the primary designer workflow, and the browser harness exists so the same contracts can be verified repeatably without live Figma.
 
 ## Project Map
 
@@ -73,6 +77,16 @@ The plugin is configured for local development only and talks to `http://localho
 - Auth is local and deterministic, but it preserves the backend-owned session and token shape.
 - SQLite stands in for a production relational database.
 
+## Usage And Cost Attribution
+
+| Dimension | Captured In The Prototype | Production Equivalent |
+| --- | --- | --- |
+| User | `usr_maya`, access token, apply event actor | SSO subject, team membership, billing owner |
+| Tenant and brand | `tenant_designtechco`, `brand_nova`, approved profile version | Customer workspace, brand profile, policy scope |
+| Operation | Copy, localization, image job, apply event | Provider request, async job, canvas apply event |
+| Cost | Estimated provider cost per usage event | Metered provider invoice line plus internal markup/allocation |
+| Audit | `operationId`, `usageEventId`, `applyEventId`, `auditEventId` | Compliance trail for generated, previewed, and applied content |
+
 ## What This Is Not
 
 - It is not a published Figma Community plugin.
@@ -86,3 +100,4 @@ The plugin is configured for local development only and talks to `http://localho
 - [Delivery Plan](docs/delivery-plan.md)
 - [Tradeoffs And Risks](docs/tradeoffs-and-risks.md)
 - [Runnable Local Prototype](docs/runnable-local-prototype.md)
+- [License](LICENSE)

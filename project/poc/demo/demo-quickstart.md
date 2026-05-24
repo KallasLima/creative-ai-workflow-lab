@@ -1,6 +1,6 @@
 # Demo Quickstart
 
-Use this when live Figma is unavailable or you need a deterministic automated fallback harness without explaining the whole repository first. The canonical designer workflow is the real local Figma development plugin in `project/figma-plugin/`.
+Use this when live Figma is unavailable or you need a deterministic automated fallback harness. The canonical designer workflow is the real local Figma development plugin in `project/figma-plugin/`.
 
 ## Start
 
@@ -20,16 +20,16 @@ Stop both with `Ctrl-C`.
 
 ## 5-Minute Fallback Harness Flow
 
-1. Point to the transport badge: `Real backend mode`.
+1. Confirm the transport badge says `Real backend mode`.
 2. Click `Backend sign-in`.
-3. Point to `Maya Chen`, `Nova Athletics`, `profile_nova_v3`, `Spring Launch`, and `mobile`.
-4. Point to selection `sel_spring_launch`: 2 text layers and 1 image-fill layer.
-5. Click `Generate copy`; show `operationId` and `usageEventId`.
-6. Click `Localization`; show all 8 locales.
-7. Click `Image`; create the placeholder and show queued, running, completed.
-8. Show `1024 x 1024` and `placeholderOnly: true`.
+3. Confirm `Maya Chen`, `Nova Athletics`, `profile_nova_v3`, `Spring Launch`, and `mobile`.
+4. Confirm selection `sel_spring_launch`: 2 text layers and 1 image-fill layer.
+5. Click `Generate copy`; verify `operationId` and `usageEventId`.
+6. Click `Localization`; verify all 8 locales.
+7. Click `Image`; verify queued, running, and completed states.
+8. Verify `1024 x 1024` and `placeholderOnly: true`.
 9. Apply one output.
-10. Open `Report`; show operation count, estimated cost, apply event, and audit event.
+10. Open `Report`; verify operation count, estimated cost, apply event, and audit event.
 
 ## Closing Line
 
