@@ -14,6 +14,8 @@ The plugin owns the designer interaction: selected layers, preview, apply, and l
 6. The designer applies a chosen output.
 7. The backend records operation, usage, apply, and audit events.
 
+For the full localize-copy-and-replace-image request flow, see [Reviewer Architecture Plan](reviewer-architecture-plan.md#2-data-flow-localize-copy-and-replace-images).
+
 ## Backend Responsibilities
 
 - Session exchange and token validation.
@@ -46,3 +48,5 @@ The production target is 99% availability for the MVP workflow and a release pro
 The architecture supports that target by keeping the plugin thin, backend APIs versioned, and long-running image work asynchronous. A normal release can deploy backend and plugin changes behind feature flags, verify `/health`, run contract smoke checks, and roll back by disabling the flag or redeploying the previous backend image. Generated assets, usage events, and audit records are durable backend data, so a plugin UI rollback does not erase operational evidence.
 
 For scaling, stateless API instances sit behind a load balancer, Postgres owns transactional records, object storage owns generated assets and uploaded guidelines, and queue workers absorb image/PDF spikes. The local prototype keeps those boundaries explicit even though it runs on one machine.
+
+The roadmap, effort model, and 3-month versus 12-month impact trade-offs are detailed in [Reviewer Architecture Plan](reviewer-architecture-plan.md).

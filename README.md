@@ -6,6 +6,15 @@ The project is intentionally local-first. The model and image outputs are determ
 
 This is best read as a runnable architecture slice: it demonstrates the workflow boundaries that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
 
+## Reviewer Starting Point
+
+If you are reviewing the architecture plan first, start with [Reviewer Architecture Plan](docs/reviewer-architecture-plan.md). It maps the requested deliverables directly:
+
+- data flow for localizing copy and replacing image layers,
+- technology choices and trade-offs,
+- phased roadmap for MVP, Beta, and full rollout,
+- how the architecture balances user experience, performance, 2-engineer delivery in 10 weeks, 3-month impact, and 12-month multi-tenant platform growth.
+
 ## What It Demonstrates
 
 - A Figma development plugin that reads selected layers, previews generated outputs, and applies copy or image fills.
@@ -96,6 +105,7 @@ The plugin is configured for local development only and talks to `http://localho
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Reviewer Architecture Plan](docs/reviewer-architecture-plan.md)
 - [Diagrams](docs/diagrams.md)
 - [Delivery Plan](docs/delivery-plan.md)
 - [Tradeoffs And Risks](docs/tradeoffs-and-risks.md)

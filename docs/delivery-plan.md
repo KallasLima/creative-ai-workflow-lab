@@ -2,6 +2,8 @@
 
 This plan assumes 2 full-stack engineers using modern AI-assisted development tools for scaffolding, fixtures, tests, documentation, and review support. Human engineers retain ownership of architecture, security, integration, and release decisions.
 
+For the reviewer-facing MVP, Beta, and full-rollout roadmap with risks, mitigations, and impact framing, see [Reviewer Architecture Plan](reviewer-architecture-plan.md#4-phased-roadmap).
+
 ## Weeks 1-2
 
 - Lock API contracts for selection, generation, localization, image jobs, apply events, and reporting.

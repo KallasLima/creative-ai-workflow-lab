@@ -1,5 +1,7 @@
 # Tradeoffs And Risks
 
+For the full reviewer-facing technology choice matrix, roadmap, and architecture balance, see [Reviewer Architecture Plan](reviewer-architecture-plan.md).
+
 ## Figma Plugin Over Web App
 
 The workflow belongs where designers already work. A Figma plugin can read selection context and apply outputs directly. A web app would be easier to build but would lose the strongest product value: editing the canvas without switching tools.
