@@ -5,17 +5,18 @@ This document explains the local prototype that supports [Reviewer Architecture 
 The local prototype has 3 layers:
 
 - Figma development plugin.
-- FastAPI backend with SQLite persistence.
+- Python/FastAPI backend with SQLite persistence and production-shaped modules for API routes, core auth/errors/config, domain policy, provider adapters, services, and database setup.
 - Browser fallback harness for repeatable verification.
 
 ## What It Demonstrates
 
 - Plugin-shaped selection, preview, and apply flow.
-- Backend-owned policy and brand profile lookup.
+- Backend-owned policy and brand profile lookup instead of plugin-owned prompts.
 - Model-gateway-shaped copy and localization calls.
 - Async image job lifecycle.
 - Usage and audit records.
 - Local verification scripts.
+- A layered backend structure that mirrors the recommended production backend: thin routes, service orchestration, provider abstraction, domain policy, and persistence boundary.
 
 ## What It Does Not Prove
 
@@ -24,6 +25,7 @@ The local prototype has 3 layers:
 - Cloud reliability.
 - Provider image quality.
 - Long-term multi-tenant operations.
+- Postgres row-level/tenant-leading indexes, managed queue semantics, or object-storage signed URL enforcement.
 
 Those belong in the production roadmap in [Reviewer Architecture Plan](reviewer-architecture-plan.md#5-phased-roadmap).
 

@@ -22,6 +22,40 @@ flowchart LR
   Queue --> Storage
 ```
 
+## Tenant Enforcement Path
+
+```mermaid
+flowchart TD
+  Request["Plugin request"] --> Session["Resolve plugin token"]
+  Session --> Claims["tenant_id, user_id, roles, figma workspace claims"]
+  Claims --> RouteGuard["Route guard checks requested tenant"]
+  RouteGuard --> Repo["Repository methods require tenant_id"]
+  Repo --> DB[("Postgres rows include tenant_id")]
+  RouteGuard --> Queue["Queue job carries tenant_id + brand_id + operation_id"]
+  Queue --> Worker["Worker revalidates tenant, brand, profile, quota"]
+  Worker --> Provider["Provider gateway call"]
+  Worker --> Storage["Object key: tenants/{tenant_id}/brands/{brand_id}/..."]
+  Storage --> SignedUrl["Signed URL only after tenant access check"]
+```
+
+## Production Data Model Sketch
+
+```mermaid
+erDiagram
+  TENANTS ||--o{ TENANT_MEMBERSHIPS : has
+  USERS ||--o{ TENANT_MEMBERSHIPS : joins
+  TENANTS ||--o{ FIGMA_WORKSPACES : maps
+  TENANTS ||--o{ BRANDS : owns
+  BRANDS ||--o{ BRAND_PROFILES : versions
+  TENANTS ||--o{ OPERATIONS : scopes
+  BRANDS ||--o{ OPERATIONS : scopes
+  OPERATIONS ||--o{ USAGE_EVENTS : records
+  OPERATIONS ||--o{ APPLY_EVENTS : adopted_by
+  OPERATIONS ||--o{ IMAGE_JOBS : may_create
+  IMAGE_JOBS ||--o| ASSETS : produces
+  TENANTS ||--o{ AUDIT_EVENTS : records
+```
+
 ## Production Runtime Flow
 
 ```mermaid
@@ -76,6 +110,8 @@ stateDiagram-v2
   Applied --> [*]
 ```
 
+The important implementation detail is that workers do not trust queued payloads. They reload tenant, brand, profile, quota, and provider policy before calling the model gateway.
+
 ## Brand Profile Lifecycle
 
 ```mermaid
@@ -89,3 +125,5 @@ flowchart TD
   Runtime --> Feedback["Designer feedback + quality review"]
   Feedback --> Draft
 ```
+
+Only `Approved Profile Version` can be used at runtime. Draft profile output from extraction is not generation context until a human reviewer approves it.

@@ -2,6 +2,8 @@
 
 This folder contains the local Figma development plugin for Creative AI Workflow Lab. It is imported directly from `manifest.json` and needs no build step.
 
+The production recommendation is a TypeScript Figma plugin with a generated API client from the backend OpenAPI contract. This local plugin stays plain JavaScript so it can be imported directly during review, but it preserves the same responsibilities: selection scanning, backend-owned auth handoff, preview, apply, and apply-event recording.
+
 The plugin demonstrates:
 
 - current selection scanning,

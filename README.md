@@ -6,6 +6,16 @@ The project is intentionally local-first. The model and image outputs are determ
 
 This is best read as a runnable architecture slice: it demonstrates the workflow boundaries that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
 
+Production recommendation in the architecture docs:
+
+- TypeScript for the Figma plugin.
+- Python 3.12, FastAPI, Pydantic, SQLAlchemy/SQLModel, and Alembic for the backend API and workers.
+- Postgres for tenant-scoped relational data.
+- Redis-backed queue for MVP async jobs, with a queue abstraction that can move to managed queue infrastructure later.
+- S3-compatible or cloud-native object storage for generated images, source guidelines, and approved reference assets.
+- OIDC/PKCE for MVP plugin sessions, with SAML/SCIM added for enterprise rollout.
+- OpenAPI-generated TypeScript client so the plugin and backend do not drift.
+
 ## Reviewer Starting Point
 
 If you are reviewing the architecture plan first, start with [Reviewer Architecture Plan](docs/reviewer-architecture-plan.md). It maps the requested deliverables directly:
@@ -21,7 +31,7 @@ If you are reviewing the architecture plan first, start with [Reviewer Architect
 - A FastAPI backend that owns OAuth/PKCE-shaped session exchange, tenant and brand policy, prompt/profile context, model orchestration, PDF extraction, image job lifecycle, usage metering, and audit trails.
 - A browser fallback harness for running the same workflow without Figma during local verification.
 - A deployable backend shape with a Dockerfile, compose file, health check, and persistent data path.
-- A 10-week delivery plan and architecture notes for turning the local prototype into a production-grade workflow.
+- A 10-week delivery plan and architecture notes for turning the local prototype into a deployed Figma-native workflow with tenant-scoped Postgres data, backend-owned model calls, queues, object storage, usage metering, and audit records.
 
 ## Fastest Demo Path
 

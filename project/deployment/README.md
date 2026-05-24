@@ -1,6 +1,6 @@
 # Deployment Shape
 
-This folder is the production-shape deployment package for the local POC backend.
+This folder is a container-shaped deployment package for the local POC backend. It proves that the backend can run as a deployable unit, but it is not the full production infrastructure.
 
 It does not require a paid cloud account. It demonstrates the deployable unit that a free container host, internal platform, or later managed environment can run:
 
@@ -10,6 +10,8 @@ It does not require a paid cloud account. It demonstrates the deployable unit th
 - persistent SQLite volume for the POC,
 - `/health` healthcheck,
 - container port mapping for the API boundary.
+
+The production architecture in `docs/architecture.md` keeps the same API/worker boundary but replaces this local container shape with managed Postgres, managed queue infrastructure, object storage, OIDC/SAML-backed auth, OpenTelemetry, and tenant-scoped deployment configuration.
 
 ## Verify
 

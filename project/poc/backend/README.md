@@ -23,6 +23,8 @@ app/
 
 The local implementation still uses SQLite and deterministic providers, but the code boundaries mirror the target architecture: API routes stay thin, services own use cases, domain modules own policy, provider adapters isolate model behavior, and the database module owns local persistence setup.
 
+The production recommendation keeps Python/FastAPI for the backend because the product depends on model-provider orchestration, PDF extraction, structured validation, background workers, and fast OpenAPI generation. Production replaces SQLite with Postgres, local deterministic providers with approved model providers, local auth with OIDC/SAML-backed sessions, and local placeholder assets with tenant-scoped object storage.
+
 ## Start
 
 ```sh

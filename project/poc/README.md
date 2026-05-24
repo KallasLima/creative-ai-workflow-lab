@@ -4,7 +4,7 @@ Local runnable prototype for a Figma-native creative AI workflow. It includes a 
 
 ## What Lives Here
 
-- `backend/`: FastAPI backend, SQLite persistence, PDF extraction, tenant and brand policy, deterministic model/image simulation, quality checks, usage reporting, and audit records.
+- `backend/`: Python/FastAPI backend, SQLite persistence, layered API/core/domain/provider/service structure, PDF extraction, tenant and brand policy, deterministic model/image simulation, quality checks, usage reporting, and audit records.
 - `frontend/`: Vite + React fallback browser harness for automated contract checks.
 - `../figma-plugin/`: local Figma development plugin for the canonical designer workflow.
 - `contracts/`: route and payload references.
@@ -70,3 +70,5 @@ project/poc/scripts/verify-all.sh
 The verifier runs backend tests, starts a local backend, verifies API contracts, installs and builds the fallback browser harness, runs a real-backend contract smoke, and runs a browser visual smoke test.
 
 It also runs `project/poc/scripts/benchmark-latency.sh`, which samples copy generation, localization, and image-job creation and fails when median local round-trip latency reaches 2 seconds.
+
+The POC intentionally does not implement production Postgres, managed queues, object storage, OIDC/SAML, or provider credentials. Those choices are specified in `docs/architecture.md`; this folder proves the API and workflow boundaries locally.

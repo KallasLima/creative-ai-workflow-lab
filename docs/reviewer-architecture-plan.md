@@ -44,6 +44,23 @@ This file is the main reviewer-facing plan. The supporting documents below expan
 | [Trade-offs And Risks](tradeoffs-and-risks.md) | Technology choices, reference-image policy, provider trade-offs, and risk mitigations. |
 | [Runnable Local Prototype](runnable-local-prototype.md) | What the local demo proves, what it does not prove, and how to verify the runnable slice. |
 
+## 2.2 Recommended Implementation Stack
+
+The production recommendation is not “a backend” in the abstract. It is:
+
+| Layer | Choice | Reason |
+| --- | --- | --- |
+| Figma plugin | TypeScript using the Figma Plugin API, with a generated API client from OpenAPI | Figma plugins run in a JavaScript sandbox. TypeScript reduces layer-shape mistakes and lets the plugin share typed contracts with the backend. |
+| Backend API | Python 3.12 with FastAPI, Pydantic, SQLAlchemy or SQLModel, and Alembic | The product is model-provider-heavy and document-extraction-heavy. Python has the strongest AI/PDF ecosystem, while FastAPI gives fast typed API delivery and OpenAPI generation for a 2-engineer team. |
+| Async workers | Python workers using the same service modules as the API | PDF extraction, image generation, provider retries, and quality evaluation need the same tenant, brand, policy, and provider gateway logic. |
+| Database | Postgres | Multi-tenant relational data, audit records, usage events, profile versions, quotas, and reporting need durable transactional consistency. |
+| Queue | Redis-backed queue for MVP, with the queue interface isolated so it can move to SQS, Cloud Tasks, Pub/Sub, or another managed queue later | MVP needs async jobs and retries without turning the first 10 weeks into infrastructure work. |
+| Object storage | S3-compatible or cloud-native object storage | Source guidelines, generated images, and approved reference assets are binary assets with retention and access-control needs. |
+| Auth | OIDC/PKCE for MVP plugin sessions, SAML and SCIM added for enterprise rollout | OIDC gets the pilot secure quickly; SAML and provisioning matter for larger customers. |
+| Observability | OpenTelemetry traces, structured JSON logs, metrics, and alerts | Provider latency, queue age, cost spikes, failed usage writes, and audit gaps must be visible. |
+
+The local prototype uses the same backend language and API framework shape, but swaps production dependencies for local ones: SQLite instead of Postgres, deterministic model adapters instead of paid providers, local auth tokens instead of OIDC/SAML, and local assets instead of object storage.
+
 ## 3. Production Data Flow: Localize Copy And Replace Images
 
 For related diagrams, see [Diagrams](diagrams.md). For component responsibilities, see [Architecture](architecture.md).
@@ -103,6 +120,31 @@ Important production behavior:
 - Generated content is previewed first. It only counts as adopted when a designer applies it to the Figma canvas.
 - Usage, cost, and audit records are first-class product objects, not logs added later.
 
+### Implementation Details Behind The Flow
+
+Multi-tenancy is enforced through repeated, boring checks rather than one broad “tenant support” feature:
+
+- Sessions resolve to `tenant_id`, `user_id`, roles, and allowed Figma workspace claims.
+- Every customer-owned table includes `tenant_id`; brand-owned tables include both `tenant_id` and `brand_id`.
+- Repository methods require tenant scope. A method like `get_brand(brand_id)` should not exist; it must be `get_brand(tenant_id, brand_id)`.
+- Object storage keys include tenant and brand prefixes, for example `tenants/{tenant_id}/brands/{brand_id}/assets/{asset_id}/original.png`.
+- Queue jobs include tenant, brand, user, operation, and profile version ids; workers re-check policy before provider calls.
+- Reports default to one tenant. Cross-tenant reporting is internal-admin-only and should not expose source prompts or asset bytes.
+
+Brand profile governance is similarly explicit:
+
+- Guideline uploads create draft profile versions.
+- Drafts become runtime-usable only after human approval.
+- Each generation stores `profile_version_id` and `prompt_template_version_id`.
+- Rollback changes the brand's active profile pointer; it does not rewrite historical operations.
+
+Usage and audit are product records:
+
+- A generation operation records model/provider metadata and estimated cost.
+- An apply event records what the designer actually placed on the canvas.
+- Cost per applied output is calculated from usage events plus apply events, not from raw generations alone.
+- Failed usage/audit writes are release blockers because they break the value and governance story.
+
 ## 4. Technology Choices And Trade-Offs
 
 For the expanded decision log and risk matrix, see [Trade-offs And Risks](tradeoffs-and-risks.md).
@@ -110,6 +152,8 @@ For the expanded decision log and risk matrix, see [Trade-offs And Risks](tradeo
 | Choice | Why It Fits The Product | Trade-Off | Mitigation |
 | --- | --- | --- | --- |
 | Figma plugin as primary UX | Designers already work in Figma; the plugin can read selected layers and apply output directly. | Plugin APIs constrain UI, auth, packaging, and background execution. | Keep plugin thin; move policy, model calls, persistence, and queues to the backend. |
+| TypeScript for plugin | It is the native practical choice for the Figma sandbox and gives compile-time safety for selected node parsing. | Requires generated contracts or manual API typing against a Python backend. | Generate a TypeScript client from the backend OpenAPI spec. |
+| Python/FastAPI backend | Python has strong AI, PDF extraction, and provider SDK support; FastAPI/Pydantic produces typed OpenAPI contracts quickly. | Splits production code between TypeScript plugin and Python backend. | Treat OpenAPI as the contract source and generate the plugin client. |
 | Deployed backend trust boundary | Required for SSO, tenant isolation, provider credentials, quotas, usage, audit, and billing. | More work than a plugin-only proof. | Start with a narrow backend API and explicit contracts; avoid putting business logic in the plugin. |
 | OAuth/PKCE or SSO-backed plugin sessions | Enterprise customers need secure identity and workspace access control. | Figma plugin auth flows are more complex than ordinary web auth. | Backend-owned handoff, browser SSO completion, short-lived plugin tokens, refresh and revocation controls. |
 | Approved brand profile service | Customer brands need governed tone, glossary, forbidden terms, locale rules, and visual notes. | Brand material is messy and requires review. | Convert PDFs/docs into draft profiles, require human approval, version profiles, support rollback. |
@@ -121,6 +165,27 @@ For the expanded decision log and risk matrix, see [Trade-offs And Risks](tradeo
 | Queue workers for image/PDF/model-heavy work | Protects API responsiveness and handles retries/rate limits. | Adds operational complexity. | Start with one worker queue and clear job states; add priority queues only after usage proves need. |
 | Production model providers | Needed to prove quality with customer brands and designers. | Cost, latency, safety, and provider drift. | Golden samples, evaluation harness, provider routing, quotas, monitoring, and fallback models. |
 | AI-agent-assisted engineering | Codex/Claude Code-style agents can speed scaffolding, tests, docs, fixtures, and review loops. | Agents can create unreviewed complexity or false confidence. | Engineers retain ownership of architecture, security, quality gates, and release decisions. |
+
+### Data Model Sketch
+
+The MVP schema should start with these tables so future multi-tenant rollout does not require a rewrite:
+
+| Table | Tenant Scope | What It Proves |
+| --- | --- | --- |
+| `tenants` | primary entity | Customer boundary and plan/status. |
+| `users` | global identity plus memberships | A user can belong to more than 1 tenant later. |
+| `tenant_memberships` | `tenant_id`, `user_id` | Role and access control. |
+| `figma_workspaces` | `tenant_id` | Maps Figma team/file context to a tenant. |
+| `brands` | `tenant_id`, `brand_id` | Brand-level policy boundary. |
+| `brand_profiles` | `tenant_id`, `brand_id`, `profile_version_id` | Versioned approved generation context. |
+| `operations` | `tenant_id`, `brand_id`, `user_id` | Generation request and state. |
+| `image_jobs` | `tenant_id`, `brand_id`, `operation_id` | Async image lifecycle and retries. |
+| `assets` | `tenant_id`, `brand_id`, storage key | Generated images and approved reference assets. |
+| `usage_events` | `tenant_id`, `brand_id`, `user_id` | Cost attribution and value reporting. |
+| `apply_events` | `tenant_id`, `brand_id`, `operation_id` | Adoption signal. |
+| `audit_events` | `tenant_id`, actor, object | Compliance and investigation trail. |
+
+The rule is simple: no customer-owned row without `tenant_id`, no brand-owned row without `brand_id`, no object-store asset without a tenant-prefixed storage key, and no provider call without an operation id.
 
 ## 5. Phased Roadmap
 
