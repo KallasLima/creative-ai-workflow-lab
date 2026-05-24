@@ -10,11 +10,11 @@ The plugin never owns provider credentials or final policy. Backend-owned calls 
 
 ## Deterministic Local Providers
 
-The local proof uses deterministic providers so it can run for free and be verified repeatedly. The tradeoff is that it proves integration shape, not live model quality.
+The local prototype uses deterministic providers so it can run for free and be verified repeatedly. The tradeoff is that it demonstrates integration shape, not live model quality.
 
 ## Async Image Jobs
 
-Image generation is asynchronous because production image work can be slow, rate-limited, or policy-gated. The local proof keeps this shape even though the placeholder returns quickly.
+Image generation is asynchronous because production image work can be slow, rate-limited, or policy-gated. The local prototype keeps this shape even though the placeholder returns quickly.
 
 ## Main Risks
 

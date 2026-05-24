@@ -103,8 +103,8 @@ async function runDemoPath(page: import("playwright-core").Page, label: string) 
   const firstViewport = await page.locator("body").innerText();
 
   assert(firstViewport.includes("Start with Backend sign-in"), `${label}: first viewport should guide the reviewer before sign-in`);
-  assert(firstViewport.includes("Awaiting image job"), `${label}: first viewport should show pending image proof`);
-  assert(!firstViewport.includes("placeholderOnly: true"), `${label}: first viewport must not claim placeholder proof before image job`);
+  assert(firstViewport.includes("Awaiting image job"), `${label}: first viewport should show pending image state`);
+  assert(!firstViewport.includes("placeholderOnly: true"), `${label}: first viewport must not claim placeholder metadata before image job`);
   await assertNoVisibleOverflow(page, `${label} pre-sign-in`);
 
   await page.getByRole("button", { name: "Backend sign-in" }).click();

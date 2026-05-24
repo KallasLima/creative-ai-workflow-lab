@@ -1,6 +1,6 @@
 # Demo Guide
 
-Use this guide to run the local proof without reading the whole repository.
+Use this guide to run the local prototype without reading the whole repository.
 
 ## Start
 
@@ -34,11 +34,11 @@ The launcher starts the backend on `http://127.0.0.1:8000` and the browser harne
 1. Start the backend.
 2. Import `project/figma-plugin/manifest.json` in Figma Desktop as a development plugin.
 3. Run **Creative AI Workflow Lab**.
-4. Click **Create local proof selection**.
+4. Click **Create demo selection**.
 5. Pair with the backend.
 6. Generate copy, localize copy, create an image placeholder, and apply outputs to the canvas.
 
-## What This Proves
+## What This Demonstrates
 
 - The plugin remains thin and canvas-focused.
 - The backend owns auth, policy, profile context, model calls, usage, cost, and audit records.

@@ -65,8 +65,8 @@
   <body>
     <section class="panel">
       <strong>Nova Campaign Assistant</strong>
-      <p>Real local Figma development plugin proof. Backend calls stay on <code>localhost:8000</code>; image output is a mocked 1024 x 1024 placeholder.</p>
-      <button id="fixture" class="secondary">Create local proof selection</button>
+      <p>Real local Figma development plugin demo. Backend calls stay on <code>localhost:8000</code>; image output is a simulated 1024 x 1024 placeholder.</p>
+      <button id="fixture" class="secondary">Create demo selection</button>
       <button id="auth">Start backend auth handoff</button>
     </section>
     <section class="panel">
@@ -79,7 +79,7 @@
       <div class="actions">
         <button id="copy" disabled>Generate copy</button>
         <button id="localize" disabled>Localize CTA</button>
-        <button id="image" disabled>Create mock image</button>
+        <button id="image" disabled>Create simulated image</button>
         <button id="apply-image" class="secondary" disabled>Apply image fill</button>
       </div>
     </section>
@@ -88,12 +88,12 @@
       <div class="result" id="outputs">Pair with the backend first.</div>
     </section>
     <section class="panel">
-      <strong>Backend proof</strong>
-      <pre id="proof">Waiting.</pre>
+      <strong>Backend trace</strong>
+      <pre id="trace">Waiting.</pre>
     </section>
     <script>
       const layers = document.getElementById("layers");
-      const proof = document.getElementById("proof");
+      const trace = document.getElementById("trace");
       const outputs = document.getElementById("outputs");
       const fixtureButton = document.getElementById("fixture");
       const authButton = document.getElementById("auth");
@@ -116,8 +116,8 @@
         channel: "mobile",
       };
 
-      function setProof(value) {
-        proof.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      function setTrace(value) {
+        trace.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
       }
 
       function supportedTextLayers() {
@@ -164,7 +164,7 @@
 
       fixtureButton.onclick = () => {
         parent.postMessage({ pluginMessage: { type: "create-fixture" } }, "*");
-        setProof({ status: "creating_fixture", expectedSelection: ["text", "text", "imageFill"] });
+        setTrace({ status: "creating_fixture", expectedSelection: ["text", "text", "imageFill"] });
       };
 
       authButton.onclick = async () => {
@@ -184,17 +184,17 @@
             body: JSON.stringify({ ...contract, requestId: start.requestId, localNonce: "demo_nonce" }),
           }).then(readJson);
           session = exchange.session;
-          setProof({
+          setTrace({
             status: "paired",
             authRequestId: start.requestId,
             sessionExpiresAt: exchange.session.expiresAt,
             figmaUserSeen: Boolean(currentUser),
             selectedLayers: latestSelection.length,
           });
-          outputs.textContent = "Backend paired. Generate copy or a mocked image placeholder.";
+          outputs.textContent = "Backend paired. Generate copy or a simulated image placeholder.";
           refreshButtons();
         } catch (error) {
-          setProof({ status: "auth_failed", error: String(error.message || error) });
+          setTrace({ status: "auth_failed", error: String(error.message || error) });
         }
       };
 
@@ -202,7 +202,7 @@
         try {
           const response = await fetch("http://localhost:8000/plugin/copy/generate", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-copy-proof-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-copy-demo-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_copy_001",
@@ -223,9 +223,9 @@
               await recordApply("op_copy_001", button.dataset.layer, "copy", "v1");
             };
           });
-          setProof({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+          setTrace({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
         } catch (error) {
-          setProof({ status: "copy_failed", error: String(error.message || error) });
+          setTrace({ status: "copy_failed", error: String(error.message || error) });
         }
       };
 
@@ -233,7 +233,7 @@
         try {
           const response = await fetch("http://localhost:8000/plugin/copy/localize", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-localize-proof-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-localize-demo-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_localize_001",
@@ -251,9 +251,9 @@
               await recordApply("op_loc_001", button.dataset.layer, "copy", "locale_fr-FR");
             };
           });
-          setProof({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+          setTrace({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
         } catch (error) {
-          setProof({ status: "localize_failed", error: String(error.message || error) });
+          setTrace({ status: "localize_failed", error: String(error.message || error) });
         }
       };
 
@@ -262,7 +262,7 @@
           const imageLayer = supportedImageLayer();
           const start = await fetch("http://localhost:8000/plugin/images/jobs", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-image-proof-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-image-demo-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_image_001",
@@ -283,9 +283,9 @@
           }
           latestImageAsset = completed.asset;
           outputs.innerHTML = latestImageAsset
-            ? `<div>Mock image ready: <code>${latestImageAsset.width} x ${latestImageAsset.height}</code>, <code>placeholderOnly: true</code>, <code>${latestImageAsset.rightsStatus}</code></div>`
+            ? `<div>Simulated image ready: <code>${latestImageAsset.width} x ${latestImageAsset.height}</code>, <code>placeholderOnly: true</code>, <code>${latestImageAsset.rightsStatus}</code></div>`
             : `<div class="warn">Image job did not complete.</div>`;
-          setProof({
+          setTrace({
             status: completed.status,
             jobId: completed.jobId,
             usageEventId: completed.usageEventId,
@@ -295,7 +295,7 @@
           });
           refreshButtons();
         } catch (error) {
-          setProof({ status: "image_failed", error: String(error.message || error) });
+          setTrace({ status: "image_failed", error: String(error.message || error) });
         }
       };
 
@@ -314,7 +314,7 @@
           );
           await recordApply("job_img_001", imageLayer.layerId, "image", latestImageAsset.assetId);
         } catch (error) {
-          setProof({ status: "apply_image_failed", error: String(error.message || error) });
+          setTrace({ status: "apply_image_failed", error: String(error.message || error) });
         }
       };
 
@@ -329,7 +329,7 @@
             appliedItems: [{ layerId, outputId, outputType }],
           }),
         }).then(readJson);
-        setProof({
+        setTrace({
           applyEventId: response.applyEventId,
           auditEventId: response.auditEventId,
           operationId,

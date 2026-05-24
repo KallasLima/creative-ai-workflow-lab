@@ -2,7 +2,7 @@
 
 This is the local fallback browser harness for the runnable architecture slice.
 
-It is not the primary designer UX. The canonical designer workflow proof is the real local Figma development plugin in `project/figma-plugin/`. This Vite + React + TypeScript harness remains because it provides deterministic automated checks for the same backend contract:
+It is not the primary designer UX. The canonical designer workflow is the real local Figma development plugin in `project/figma-plugin/`. This Vite + React + TypeScript harness remains because it provides deterministic automated checks for the same backend contract:
 
 - mock plugin sign-in for offline fallback,
 - seeded Figma-shaped layer fixtures,

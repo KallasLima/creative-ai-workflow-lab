@@ -58,9 +58,9 @@ assert(summary.assetCard.detail.includes("placeholderOnly: true"), "asset summar
 assert(pendingSummary.assetCard.value === "Awaiting image job", "pending asset summary must not claim dimensions before the image job");
 assert(pendingSummary.assetCard.detail === "Create the placeholder before claiming metadata", "pending asset summary must not claim placeholder metadata early");
 assert(pendingSummary.assetCard.detail.includes("before claiming metadata"), "pending asset summary must not claim placeholder metadata early");
-assert(summary.traceCard.detail.includes("usage_copy_001"), "trace proof must include the copy usageEventId");
-assert(summary.traceCard.detail.includes("usage_loc_001"), "trace proof must include the localization usageEventId");
-assert(summary.traceCard.detail.includes("usage_img_001"), "trace proof must include the image usageEventId");
+assert(summary.traceCard.detail.includes("usage_copy_001"), "trace summary must include the copy usageEventId");
+assert(summary.traceCard.detail.includes("usage_loc_001"), "trace summary must include the localization usageEventId");
+assert(summary.traceCard.detail.includes("usage_img_001"), "trace summary must include the image usageEventId");
 assert(completeReport.summary.totalOperations === 6, "usage report should prove the complete flow");
 assert(completeReport.summary.applyEvents === 3, "usage report should prove all 3 apply events");
 assert(copyResponse.results.every((result) => result.variants.length === 3), "copy response should expose 3 variants per layer");

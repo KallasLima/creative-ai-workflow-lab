@@ -4,7 +4,7 @@ Creative AI Workflow Lab is a local prototype for an AI-assisted design workflow
 
 The project is intentionally local-first. The model and image outputs are deterministic fixtures, while the backend, persistence, API contracts, Figma plugin bridge, browser fallback harness, and verification scripts are executable.
 
-This is best read as a runnable architecture slice: it proves the workflow seams that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
+This is best read as a runnable architecture slice: it demonstrates the workflow boundaries that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
 
 ## What It Demonstrates
 
@@ -12,7 +12,7 @@ This is best read as a runnable architecture slice: it proves the workflow seams
 - A FastAPI backend that owns auth/session exchange, tenant and brand policy, prompt/profile context, model orchestration, PDF extraction, image job lifecycle, usage metering, and audit trails.
 - A browser fallback harness for running the same workflow without Figma during local verification.
 - A deployable backend shape with a Dockerfile, compose file, health check, and persistent data path.
-- A 10-week delivery plan and architecture notes for turning the local proof into a production-grade workflow.
+- A 10-week delivery plan and architecture notes for turning the local prototype into a production-grade workflow.
 
 ## Project Map
 
@@ -24,10 +24,10 @@ This is best read as a runnable architecture slice: it proves the workflow seams
 | `project/poc/contracts/` | API and payload contracts shared by plugin and backend. |
 | `project/poc/fixtures/` | Deterministic fixtures for brand, selection, quality, and reports. |
 | `project/poc/scripts/` | Local run and verification scripts. |
-| `project/deployment/` | Container-shaped backend deployment proof. |
+| `project/deployment/` | Container-shaped backend deployment package. |
 | `docs/` | Architecture, trade-off, and delivery notes. |
 
-## Run The Local Proof
+## Run The Local Prototype
 
 Requirements:
 
@@ -41,6 +41,8 @@ Run the full verifier:
 ```sh
 project/poc/scripts/verify-all.sh
 ```
+
+The verifier includes backend tests, API contract checks, a local latency benchmark for copy/localization/image-job creation, frontend build checks, and browser visual smoke tests.
 
 Start the local backend and browser fallback harness:
 
@@ -60,16 +62,22 @@ http://127.0.0.1:5173
 2. Open Figma Desktop.
 3. Import `project/figma-plugin/manifest.json` as a development plugin.
 4. Run `Creative AI Workflow Lab`.
-5. Use `Create local proof selection`, then pair with the local backend and run copy, localization, and image placeholder actions.
+5. Use `Create demo selection`, then pair with the local backend and run copy, localization, and image placeholder actions.
 
 The plugin is configured for local development only and talks to `http://localhost:8000`.
 
-## What Is Mocked
+## What Is Simulated
 
-- Model output is deterministic and fixture-backed.
+- Model output is deterministic and fixture-backed so the project can run for free.
 - Image generation returns a 1024 x 1024 placeholder asset rather than calling a paid image model.
 - Auth is local and deterministic, but it preserves the backend-owned session and token shape.
 - SQLite stands in for a production relational database.
+
+## What This Is Not
+
+- It is not a published Figma Community plugin.
+- It does not include paid model-provider credentials or paid image-generation calls.
+- It is not a production SaaS deployment. The production path is described in `docs/architecture.md` and `docs/delivery-plan.md`.
 
 ## Documentation
 
@@ -77,4 +85,4 @@ The plugin is configured for local development only and talks to `http://localho
 - [Diagrams](docs/diagrams.md)
 - [Delivery Plan](docs/delivery-plan.md)
 - [Tradeoffs And Risks](docs/tradeoffs-and-risks.md)
-- [Runnable Local Proof](docs/runnable-local-proof.md)
+- [Runnable Local Prototype](docs/runnable-local-prototype.md)

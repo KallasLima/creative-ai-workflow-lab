@@ -1,6 +1,6 @@
 # Creative AI Workflow Slice
 
-Local runnable proof for a Figma-native creative AI workflow. It includes a backend, a Figma development plugin, and a browser fallback harness for deterministic verification.
+Local runnable prototype for a Figma-native creative AI workflow. It includes a backend, a Figma development plugin, and a browser fallback harness for deterministic verification.
 
 ## What Lives Here
 
@@ -40,7 +40,7 @@ project/poc/scripts/verify-api.sh
 2. Open Figma Desktop.
 3. Import `project/figma-plugin/manifest.json` through **Plugins > Development > Import plugin from manifest**.
 4. Run the plugin on a local file.
-5. Create the local proof selection.
+5. Create the demo selection.
 6. Pair with the backend, generate copy/localization, create the image placeholder, apply outputs to canvas, and record apply events.
 
 ## Automated Browser Harness
@@ -68,3 +68,5 @@ project/poc/scripts/verify-all.sh
 ```
 
 The verifier runs backend tests, starts a local backend, verifies API contracts, installs and builds the fallback browser harness, runs a real-backend contract smoke, and runs a browser visual smoke test.
+
+It also runs `project/poc/scripts/benchmark-latency.sh`, which samples copy generation, localization, and image-job creation and fails when median local round-trip latency reaches 2 seconds.

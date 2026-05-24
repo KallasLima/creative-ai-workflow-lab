@@ -54,11 +54,11 @@ function decodeBase64Png(base64) {
   return bytes;
 }
 
-async function createProofFixture() {
+async function createDemoFixture() {
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
 
   const frame = figma.createFrame();
-  frame.name = "Nova spring campaign proof";
+  frame.name = "Nova spring campaign demo";
   frame.resize(1280, 1040);
   frame.fills = [{ type: "SOLID", color: { r: 0.96, g: 0.96, b: 0.94 } }];
   frame.x = figma.viewport.center.x - 640;
@@ -94,7 +94,7 @@ async function createProofFixture() {
   frame.appendChild(image);
   figma.currentPage.selection = [headline, cta, image];
   figma.viewport.scrollAndZoomIntoView([frame]);
-  figma.notify("Created local proof fixture and selected 2 text layers plus a 1024 x 1024 image layer.");
+  figma.notify("Created demo fixture and selected 2 text layers plus a 1024 x 1024 image layer.");
 }
 
 async function applyCopy(message) {
@@ -104,7 +104,7 @@ async function applyCopy(message) {
     return;
   }
   if (node.fontName === figma.mixed) {
-    figma.notify("Mixed fonts are not supported in the local proof plugin.", { error: true });
+    figma.notify("Mixed fonts are not supported in the local demo plugin.", { error: true });
     return;
   }
   await figma.loadFontAsync(node.fontName);
@@ -120,7 +120,7 @@ async function applyImage(message) {
   }
   const image = figma.createImage(decodeBase64Png(message.imageBytesBase64));
   node.fills = [{ type: "IMAGE", scaleMode: "FILL", imageHash: image.hash }];
-  figma.notify("Applied mocked 1024 x 1024 placeholder image fill.");
+  figma.notify("Applied simulated 1024 x 1024 placeholder image fill.");
 }
 
 function postSelection() {
@@ -140,7 +140,7 @@ figma.on("selectionchange", postSelection);
 
 figma.ui.onmessage = async (message) => {
   if (message.type === "create-fixture") {
-    await createProofFixture();
+    await createDemoFixture();
     postSelection();
   }
 

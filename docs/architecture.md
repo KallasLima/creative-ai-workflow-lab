@@ -27,7 +27,7 @@ The plugin owns the designer interaction: selected layers, preview, apply, and l
 
 ## Production Shape
 
-The local proof uses FastAPI, SQLite, and deterministic providers. A production version would keep the same boundaries while replacing local components with managed equivalents:
+The local prototype uses FastAPI, SQLite, and deterministic providers. A production version would keep the same boundaries while replacing local components with managed equivalents:
 
 - SQLite to Postgres.
 - Local file assets to private object storage.
@@ -43,4 +43,4 @@ The production target is 99% availability for the MVP workflow and a release pro
 
 The architecture supports that target by keeping the plugin thin, backend APIs versioned, and long-running image work asynchronous. A normal release can deploy backend and plugin changes behind feature flags, verify `/health`, run contract smoke checks, and roll back by disabling the flag or redeploying the previous backend image. Generated assets, usage events, and audit records are durable backend data, so a plugin UI rollback does not erase operational evidence.
 
-For scaling, stateless API instances sit behind a load balancer, Postgres owns transactional records, object storage owns generated assets and uploaded guidelines, and queue workers absorb image/PDF spikes. The local proof keeps those seams explicit even though it runs on one machine.
+For scaling, stateless API instances sit behind a load balancer, Postgres owns transactional records, object storage owns generated assets and uploaded guidelines, and queue workers absorb image/PDF spikes. The local prototype keeps those boundaries explicit even though it runs on one machine.

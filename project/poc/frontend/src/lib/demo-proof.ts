@@ -70,32 +70,32 @@ export function buildDemoProofSummary(input: {
   const assetDetail = asset ? `placeholderOnly: ${String(asset.placeholderOnly)} · ${asset.assetId}` : "Create the placeholder before claiming metadata";
   const readinessGates: ProofGate[] = [
     {
-      label: "Selection proof",
+      label: "Selection",
       detail: "2 text layers and 1 image-fill layer are visible",
       passed: textCount >= 2 && imageCount >= 1,
     },
     {
-      label: "Profile proof",
+      label: "Profile",
       detail: "profile_nova_v3 is approved and brand-scoped",
       passed: input.profile?.profileId === "profile_nova_v3" && input.profile?.status === "approved",
     },
     {
-      label: "Localization proof",
+      label: "Localization",
       detail: "The 8 required locales are visible in the matrix",
       passed: (input.localization?.results[0]?.localizations.length ?? 0) === 8,
     },
     {
-      label: "Image proof",
+      label: "Image",
       detail: "The placeholder remains 1024 x 1024 and placeholderOnly",
       passed: Boolean(asset) && asset?.width === 1024 && asset?.height === 1024 && asset?.placeholderOnly === true,
     },
     {
-      label: "Trace proof",
+      label: "Trace",
       detail: "operation, usage, apply, and audit ids stay visible",
       passed: Boolean(input.copy?.operationId && input.copy?.usageEventId && input.apply?.applyEventId && input.apply?.auditEventId),
     },
     {
-      label: "Scale proof",
+      label: "Scale path",
       detail: "SQLite, mock provider, and queue-worker path is explicit",
       passed: true,
     },

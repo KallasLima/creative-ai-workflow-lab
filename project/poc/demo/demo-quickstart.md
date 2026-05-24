@@ -33,4 +33,4 @@ Stop both with `Ctrl-C`.
 
 ## Closing Line
 
-This is not a production MVP or the main product surface. It is a runnable fallback proof of the seams: plugin workflow, backend policy, profile versioning, model boundary, async jobs, usage metering, and auditability.
+This is not a production MVP or the main product surface. It is a runnable fallback demonstration of the boundaries: plugin workflow, backend policy, profile versioning, model boundary, async jobs, usage metering, and auditability.

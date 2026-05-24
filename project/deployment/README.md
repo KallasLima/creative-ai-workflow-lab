@@ -1,8 +1,8 @@
-# Deployment Proof
+# Deployment Shape
 
-This folder is the production-shape deployment proof for the local POC backend.
+This folder is the production-shape deployment package for the local POC backend.
 
-It does not require a paid cloud account. It proves the deployable unit that a free container host, internal platform, or later managed environment can run:
+It does not require a paid cloud account. It demonstrates the deployable unit that a free container host, internal platform, or later managed environment can run:
 
 - pinned Python runtime,
 - dependency install from `requirements.txt`,

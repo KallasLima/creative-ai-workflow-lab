@@ -127,7 +127,7 @@ function DemoSequence({ signedIn, copyReady, localizationReady, imageReady, appl
     <section className="demo-sequence" aria-label="Demo sequence">
       <div>
         <strong>3-5 minute demo path</strong>
-        <span>Follow the proof rail from session to report.</span>
+        <span>Follow the demo path from session to report.</span>
       </div>
       <ol>
         {steps.map(([number, label, done]) => (
@@ -391,7 +391,7 @@ function PlaceholderPreview({ asset }: { asset?: ImageAsset }) {
       <div>
         <strong>{asset?.assetId ?? "asset pending"}</strong>
         <span>{asset ? `${asset.width} x ${asset.height}` : "Run the image job to verify 1024 x 1024"}</span>
-        <span>{asset ? `placeholderOnly: ${String(asset.placeholderOnly)}` : "placeholderOnly proof pending"}</span>
+        <span>{asset ? `placeholderOnly: ${String(asset.placeholderOnly)}` : "placeholder metadata pending"}</span>
       </div>
     </div>
   );
@@ -527,7 +527,7 @@ function ScaleReadinessPanel({
 }) {
   return (
     <aside className="panel scale-panel">
-      <SectionTitle icon={<CircleDollarSign size={16} />} title="Scale Readiness" detail="Local proof to production path" />
+      <SectionTitle icon={<CircleDollarSign size={16} />} title="Scale Readiness" detail="Local prototype to production path" />
       <div className="proof-stack">
         <ProofCard {...summary.runtimeCard} />
         <ProofCard {...summary.selectionCard} />
@@ -789,7 +789,7 @@ export function App() {
 
         {primaryError ? <NoticeBanner tone={primaryError.recoverable ? "warn" : "info"} title={primaryError.message} body={primaryError.detail} /> : null}
 
-        <section className="proof-strip" aria-label="Proof summary">
+        <section className="proof-strip" aria-label="Workflow summary">
           <ProofCard {...proofSummary.runtimeCard} />
           <ProofCard {...proofSummary.selectionCard} />
           <ProofCard {...proofSummary.profileCard} />

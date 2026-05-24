@@ -185,6 +185,9 @@ PY
 echo "[verify-all] api verifier"
 POC_LOCK_HELD=1 API_URL="$API_URL" "$POC/scripts/verify-api.sh"
 
+echo "[verify-all] latency benchmark"
+POC_LOCK_HELD=1 API_URL="$API_URL" "$POC/scripts/benchmark-latency.sh"
+
 if [ -d "$FRONTEND" ]; then
   if [ "$RUN_FRONTEND_VERIFY" != "1" ]; then
     echo "[verify-all] frontend verification disabled by RUN_FRONTEND_VERIFY=0"
