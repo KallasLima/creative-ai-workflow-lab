@@ -213,7 +213,9 @@ function ContextPanel({ context, profile }: { context?: ContextResponse; profile
       <SectionTitle icon={<ShieldCheck size={16} />} title="Context" detail={brand?.name ?? "Sign in to load brand access"} />
       <div className="context-grid">
         <Metric label="Brand" value={brand?.name ?? "-"} />
+        <Metric label="Brand ID" value={profile?.brandId ?? brand?.brandId ?? "-"} />
         <Metric label="Profile" value={profile?.profileId ?? brand?.activeProfileId ?? "-"} />
+        <Metric label="Profile Status" value={profile?.status ?? "pending"} />
         <Metric label="Campaign" value={campaign} />
         <Metric label="Channel" value={channel} />
       </div>

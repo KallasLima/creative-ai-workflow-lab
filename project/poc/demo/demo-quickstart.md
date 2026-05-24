@@ -22,7 +22,7 @@ Stop both with `Ctrl-C`.
 
 1. Confirm the transport badge says `Real backend mode`.
 2. Click `Backend sign-in`.
-3. Confirm `Maya Chen`, `Nova Athletics`, `profile_nova_v3`, `Spring Launch`, and `mobile`.
+3. Confirm `Maya Chen`, `Nova Athletics`, `brand_nova`, `profile_nova_v3`, approved profile status, `Spring Launch`, and `mobile`.
 4. Confirm selection `sel_spring_launch`: 2 text layers and 1 image-fill layer.
 5. Click `Generate copy`; verify `operationId` and `usageEventId`.
 6. Click `Localization`; verify all 8 locales.

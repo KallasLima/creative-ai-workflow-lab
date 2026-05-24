@@ -76,7 +76,7 @@ export function buildDemoProofSummary(input: {
     },
     {
       label: "Profile",
-      detail: "profile_nova_v3 is approved and brand-scoped",
+      detail: "Look for profile_nova_v3, approved status, and brand_nova scope",
       passed: input.profile?.profileId === "profile_nova_v3" && input.profile?.status === "approved",
     },
     {
@@ -115,9 +115,9 @@ export function buildDemoProofSummary(input: {
       tone: textCount >= 2 && imageCount >= 1 ? "good" : "warn",
     },
     profileCard: {
-      label: input.profile?.profileId ?? "Brand profile",
-      value: `${input.profile?.status ?? "pending"} v${input.profile?.version ?? 0}`,
-      detail: input.profile ? `Brand ${input.profile.brandId} · ${input.profile.tone.join(" / ")}` : "Waiting for approved brand profile",
+      label: "Brand profile",
+      value: input.profile ? `${input.profile.profileId} · ${input.profile.status}` : "Waiting for approved profile",
+      detail: input.profile ? `Scope ${input.profile.brandId} · version ${input.profile.version} · ${input.profile.tone.join(" / ")}` : "Waiting for approved brand profile",
       tone: input.profile?.status === "approved" ? "good" : "warn",
     },
     traceCard: {

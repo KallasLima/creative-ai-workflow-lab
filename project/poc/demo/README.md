@@ -20,7 +20,7 @@ The launcher starts the backend on `http://127.0.0.1:8000` and the browser harne
 
 1. Confirm the transport badge says `Real backend mode`.
 2. Click `Backend sign-in`.
-3. Confirm `Maya Chen`, `Nova Athletics`, and `profile_nova_v3`.
+3. Confirm `Maya Chen`, `Nova Athletics`, `brand_nova`, `profile_nova_v3`, and approved profile status.
 4. Confirm selection `sel_spring_launch` has 2 text layers and 1 image-fill layer.
 5. Generate copy and verify `operationId` plus `usageEventId`.
 6. Run localization and verify all 8 locales are visible.
