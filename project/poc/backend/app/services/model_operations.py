@@ -103,8 +103,8 @@ def localize_copy(request: LocalizationRequest, idempotency_key: str | None) -> 
     require_scope(request.tenantId, request.brandId, request.profileId)
     if len(request.locales) > 8:
         raise HTTPException(status_code=400, detail={"code": "invalid_locale_count", "message": "Localize requests support at most 8 locales."})
-    locale_text = localized_text_by_locale()
-    unsupported = [locale for locale in request.locales if locale not in locale_text]
+    supported_locale_text = localized_text_by_locale()
+    unsupported = [locale for locale in request.locales if locale not in supported_locale_text]
     if unsupported:
         raise HTTPException(
             status_code=400,
@@ -116,12 +116,22 @@ def localize_copy(request: LocalizationRequest, idempotency_key: str | None) -> 
             },
         )
     requested = request.locales or LOCALES
-    localizations = [
-        {"locale": locale, "text": locale_text[locale], "warning": None if locale != "ja-JP" else "Review character width for compact CTA buttons."}
-        for locale in LOCALES
-        if locale in requested
+    results = [
+        {
+            "layerId": layer.layerId,
+            "sourceText": layer.text,
+            "localizations": [
+                {
+                    "locale": locale,
+                    "text": localized_text_by_locale(layer.text)[locale],
+                    "warning": None if locale != "ja-JP" else "Review character width for compact CTA buttons.",
+                }
+                for locale in LOCALES
+                if locale in requested
+            ],
+        }
+        for layer in request.layers
     ]
-    results = [{"layerId": layer.layerId, "localizations": localizations} for layer in request.layers]
     record_operation(
         "op_loc_001",
         "req_loc_001",
@@ -171,4 +181,3 @@ def record_apply_event(request: ApplyEventRequest) -> dict[str, Any]:
         insert_audit(conn, audit_event_id, "apply_recorded", request.operationId, payload={"appliedBy": request.appliedBy})
         conn.commit()
     return {"requestId": request_id, "applyEventId": apply_event_id, "auditEventId": audit_event_id, "status": "recorded"}
-

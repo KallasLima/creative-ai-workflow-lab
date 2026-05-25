@@ -3,108 +3,473 @@
   <head>
     <meta charset="utf-8" />
     <style>
+      :root {
+        color-scheme: light dark;
+        --bg: var(--figma-color-bg, #ffffff);
+        --panel: var(--figma-color-bg, #ffffff);
+        --panel-soft: var(--figma-color-bg-secondary, #f7f8fa);
+        --border: var(--figma-color-border, #d9dee8);
+        --border-soft: var(--figma-color-border-secondary, #edf0f5);
+        --text: var(--figma-color-text, #1f2933);
+        --muted: var(--figma-color-text-secondary, #6b7280);
+        --brand: var(--figma-color-bg-brand, #0d99ff);
+        --brand-text: var(--figma-color-text-onbrand, #ffffff);
+        --ok: var(--figma-color-text-success, #0a7a43);
+        --warn: var(--figma-color-text-warning, #8a5a00);
+        --danger: var(--figma-color-text-danger, #b42318);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        padding: 16px;
-        font: 12px Inter, sans-serif;
-        color: var(--figma-color-text, #1f2933);
-        background: var(--figma-color-bg, #ffffff);
+        min-height: 100vh;
+        font: 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
       }
-      button {
-        border: 1px solid var(--figma-color-border, #d9dee8);
-        background: var(--figma-color-bg-brand, #0d99ff);
-        color: var(--figma-color-text-onbrand, #ffffff);
-        border-radius: 6px;
-        padding: 8px 10px;
-        cursor: pointer;
-      }
-      button.secondary {
-        background: var(--figma-color-bg-secondary, #f5f6f8);
-        color: var(--figma-color-text, #1f2933);
-      }
-      button:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-      }
-      .panel {
-        border: 1px solid var(--figma-color-border, #d9dee8);
-        border-radius: 8px;
+
+      .shell {
+        display: grid;
+        gap: 10px;
         padding: 12px;
-        margin-bottom: 12px;
       }
+
+      .header {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .title-row,
       .row {
         display: flex;
+        align-items: center;
         justify-content: space-between;
         gap: 8px;
-        padding: 6px 0;
-        border-bottom: 1px solid var(--figma-color-border, #eef1f6);
       }
-      .row:last-child {
-        border-bottom: 0;
+
+      h1,
+      h2,
+      p {
+        margin: 0;
       }
+
+      h1 {
+        font-size: 13px;
+        line-height: 18px;
+        font-weight: 650;
+      }
+
+      h2 {
+        font-size: 12px;
+        line-height: 16px;
+        font-weight: 650;
+      }
+
+      p,
+      .muted {
+        color: var(--muted);
+        line-height: 16px;
+      }
+
       code {
+        font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: var(--muted);
+      }
+
+      button {
+        min-height: 32px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font: inherit;
+        font-weight: 560;
+        cursor: pointer;
+        background: var(--brand);
+        color: var(--brand-text);
+      }
+
+      button.secondary {
+        border-color: var(--border);
+        background: var(--panel-soft);
+        color: var(--text);
+      }
+
+      button.ghost {
+        border-color: transparent;
+        background: transparent;
+        color: var(--text);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        border-color: var(--border-soft);
+        background: var(--panel-soft);
+        color: var(--muted);
+        opacity: 1;
+      }
+
+      .panel {
+        display: grid;
+        gap: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        background: var(--panel);
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .status-card {
+        min-height: 50px;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        padding: 8px;
+        background: var(--panel-soft);
+      }
+
+      .status-card strong {
+        display: block;
+        margin-bottom: 3px;
         font-size: 11px;
       }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 2px 8px;
+        white-space: nowrap;
+        color: var(--muted);
+        background: var(--panel-soft);
+      }
+
+      .pill.ok {
+        color: var(--ok);
+      }
+
+      .pill.warn {
+        color: var(--warn);
+      }
+
+      .pill.danger {
+        color: var(--danger);
+      }
+
       .actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
-      .result {
+
+      .stack {
         display: grid;
         gap: 8px;
       }
-      .result button {
-        text-align: left;
+
+      .layer-list,
+      .output-list {
+        display: grid;
+        gap: 6px;
       }
-      .warn {
-        color: var(--figma-color-text-warning, #8a5a00);
+
+      .layer,
+      .output {
+        display: grid;
+        gap: 5px;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        padding: 8px;
+        background: var(--panel-soft);
+      }
+
+      .layer-title,
+      .output-title {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .layer-name,
+      .output-name {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 560;
+      }
+
+      .locale-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .locale-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      .locale-picker {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .locale-option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        padding: 6px 8px;
+        background: var(--panel-soft);
+        color: var(--text);
+        font-weight: 560;
+      }
+
+      .locale-option input {
+        margin: 0;
+      }
+
+      .locale-option span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .locale-group {
+        display: grid;
+        gap: 6px;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        padding: 8px;
+        background: var(--panel-soft);
+      }
+
+      .banner {
+        display: none;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px;
+        line-height: 16px;
+        background: var(--panel-soft);
+      }
+
+      .banner.visible {
+        display: block;
+      }
+
+      .banner.ok {
+        border-color: rgba(10, 122, 67, 0.28);
+        color: var(--ok);
+      }
+
+      .banner.warn {
+        border-color: rgba(138, 90, 0, 0.28);
+        color: var(--warn);
+      }
+
+      .banner.danger {
+        border-color: rgba(180, 35, 24, 0.28);
+        color: var(--danger);
+      }
+
+      .steps {
+        display: grid;
+        gap: 6px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 6px;
+        align-items: start;
+        color: var(--muted);
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        margin-top: 4px;
+        border-radius: 999px;
+        background: var(--border);
+      }
+
+      .step.active {
+        color: var(--text);
+      }
+
+      .step.active .dot {
+        background: var(--brand);
+      }
+
+      .step.done .dot {
+        background: var(--ok);
+      }
+
+      .pre {
+        max-height: 180px;
+        overflow: auto;
+        margin: 0;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        padding: 8px;
+        background: var(--panel-soft);
+        font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
       }
     </style>
   </head>
   <body>
-    <section class="panel">
-      <strong>Nova Campaign Assistant</strong>
-      <p>Real local Figma development plugin demo. Backend calls stay on <code>localhost:8000</code>; image output is a simulated 1024 x 1024 placeholder.</p>
-      <button id="fixture" class="secondary">Create demo selection</button>
-      <button id="auth">Start backend auth handoff</button>
-    </section>
-    <section class="panel">
-      <strong>Selected layers</strong>
-      <div id="layers">No selection received yet.</div>
-    </section>
-    <section class="panel">
-      <strong>Generate and apply</strong>
-      <p>Use selected text layers and one 1024 x 1024 fill-capable layer.</p>
-      <div class="actions">
-        <button id="copy" disabled>Generate copy</button>
-        <button id="localize" disabled>Localize CTA</button>
-        <button id="image" disabled>Create simulated image</button>
-        <button id="apply-image" class="secondary" disabled>Apply image fill</button>
-      </div>
-    </section>
-    <section class="panel">
-      <strong>Generated outputs</strong>
-      <div class="result" id="outputs">Pair with the backend first.</div>
-    </section>
-    <section class="panel">
-      <strong>Backend trace</strong>
-      <pre id="trace">Waiting.</pre>
-    </section>
+    <main class="shell">
+      <section class="header">
+        <div class="title-row">
+          <h1>Nova Campaign Assistant</h1>
+          <span id="session-pill" class="pill warn">Not paired</span>
+        </div>
+        <p>Figma plugin proof for copy, localization, image placeholders, usage, and audit events.</p>
+        <div class="actions">
+          <button id="fixture" class="secondary">Create local proof selection</button>
+          <button id="auth">Pair backend</button>
+        </div>
+      </section>
+
+      <div id="banner" class="banner"></div>
+
+      <section class="panel">
+        <div class="title-row">
+          <h2>Readiness</h2>
+          <span id="readiness-pill" class="pill">Waiting</span>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <strong>Text layers</strong>
+            <span id="text-count" class="muted">0 ready</span>
+          </div>
+          <div class="status-card">
+            <strong>Image layer</strong>
+            <span id="image-state" class="muted">Missing</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="title-row">
+          <h2>Selected layers</h2>
+          <button id="refresh" class="ghost">Refresh</button>
+        </div>
+        <div id="layers" class="layer-list">
+          <div class="muted">No selection received yet.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="locale-toolbar">
+          <div>
+            <h2>Target locales</h2>
+            <div id="locale-summary" class="muted">8 selected</div>
+          </div>
+          <div class="locale-actions">
+            <button id="select-all-locales" class="ghost">All</button>
+            <button id="clear-locales" class="ghost">Clear</button>
+          </div>
+        </div>
+        <div id="locale-picker" class="locale-picker"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Workflow</h2>
+        <div class="steps" id="steps"></div>
+        <div class="actions">
+          <button id="copy" disabled>Generate copy</button>
+          <button id="localize" disabled>Localize</button>
+          <button id="image" disabled>Create image</button>
+          <button id="apply-image" class="secondary" disabled>Apply image</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="title-row">
+          <h2>Outputs</h2>
+          <span id="output-pill" class="pill">None yet</span>
+        </div>
+        <div class="output-list" id="outputs">
+          <div class="muted">Pair the backend, then generate copy or an image placeholder.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="title-row">
+          <h2>Proof</h2>
+          <button id="clear-proof" class="ghost">Clear</button>
+        </div>
+        <pre id="proof" class="pre">Waiting.</pre>
+      </section>
+    </main>
+
     <script>
-      const layers = document.getElementById("layers");
-      const trace = document.getElementById("trace");
-      const outputs = document.getElementById("outputs");
-      const fixtureButton = document.getElementById("fixture");
-      const authButton = document.getElementById("auth");
-      const copyButton = document.getElementById("copy");
-      const localizeButton = document.getElementById("localize");
-      const imageButton = document.getElementById("image");
-      const applyImageButton = document.getElementById("apply-image");
-      let latestSelection = [];
-      let currentUser = null;
-      let session = null;
-      let latestImageAsset = null;
+      const els = {
+        banner: document.getElementById("banner"),
+        layers: document.getElementById("layers"),
+        proof: document.getElementById("proof"),
+        outputs: document.getElementById("outputs"),
+        steps: document.getElementById("steps"),
+        sessionPill: document.getElementById("session-pill"),
+        readinessPill: document.getElementById("readiness-pill"),
+        outputPill: document.getElementById("output-pill"),
+        textCount: document.getElementById("text-count"),
+        imageState: document.getElementById("image-state"),
+        localePicker: document.getElementById("locale-picker"),
+        localeSummary: document.getElementById("locale-summary"),
+        fixture: document.getElementById("fixture"),
+        auth: document.getElementById("auth"),
+        refresh: document.getElementById("refresh"),
+        selectAllLocales: document.getElementById("select-all-locales"),
+        clearLocales: document.getElementById("clear-locales"),
+        copy: document.getElementById("copy"),
+        localize: document.getElementById("localize"),
+        image: document.getElementById("image"),
+        applyImage: document.getElementById("apply-image"),
+        clearProof: document.getElementById("clear-proof"),
+      };
+
+      const state = {
+        selection: [],
+        currentUser: null,
+        session: null,
+        busy: null,
+        latestImageAsset: null,
+        generatedCopy: false,
+        localizedCopy: false,
+        imageCompleted: false,
+        imageApplied: false,
+        appliedCount: 0,
+        selectedLocales: new Set(["fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "nl-NL", "ja-JP", "ko-KR"]),
+      };
+
+      const locales = [
+        ["fr-FR", "French"],
+        ["de-DE", "German"],
+        ["es-ES", "Spanish"],
+        ["pt-BR", "Portuguese"],
+        ["it-IT", "Italian"],
+        ["nl-NL", "Dutch"],
+        ["ja-JP", "Japanese"],
+        ["ko-KR", "Korean"],
+      ];
 
       const contract = {
         contractVersion: "2026-05-poc",
@@ -116,22 +481,58 @@
         channel: "mobile",
       };
 
-      function setTrace(value) {
-        trace.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
       }
 
-      function supportedTextLayers() {
-        return latestSelection.filter((layer) => layer.type === "text" && layer.supported);
+      function setProof(value) {
+        els.proof.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
       }
 
-      function supportedImageLayer() {
-        return latestSelection.find((layer) => layer.type === "imageFill" && layer.supported && layer.dimensions);
+      function showBanner(kind, message) {
+        els.banner.className = `banner visible ${kind}`;
+        els.banner.textContent = message;
+      }
+
+      function hideBanner() {
+        els.banner.className = "banner";
+        els.banner.textContent = "";
+      }
+
+      function textLayers() {
+        return state.selection.filter((layer) => layer.type === "text" && layer.supported);
+      }
+
+      function imageCandidates() {
+        return state.selection.filter((layer) => layer.type === "imageFill" && layer.supported && layer.dimensions);
+      }
+
+      function validImageLayer() {
+        return imageCandidates().find((layer) => layer.dimensions.width === 1024 && layer.dimensions.height === 1024);
+      }
+
+      function selectedLocales() {
+        return locales.map(([locale]) => locale).filter((locale) => state.selectedLocales.has(locale));
+      }
+
+      function imageLayerIssue() {
+        const imageLike = state.selection.filter((layer) => layer.type === "imageFill" && layer.dimensions);
+        const candidates = imageCandidates();
+        if (imageLike.length && !candidates.length) return imageLike[0].issue || "Selected image layer is not supported.";
+        if (!candidates.length) return "Select one fill-capable 1024 x 1024 layer.";
+        if (!validImageLayer()) return `${candidates[0].dimensions.width} x ${candidates[0].dimensions.height} selected. Image jobs require 1024 x 1024.`;
+        if (candidates.length > 1) return "Using the first valid 1024 x 1024 image layer.";
+        return "";
       }
 
       function authHeaders(extra = {}) {
         return {
           ...extra,
-          authorization: `Bearer ${session.accessToken}`,
+          authorization: `Bearer ${state.session.accessToken}`,
         };
       }
 
@@ -143,32 +544,194 @@
         return payload;
       }
 
-      function refreshButtons() {
-        const signedIn = Boolean(session);
-        copyButton.disabled = !signedIn || supportedTextLayers().length === 0;
-        localizeButton.disabled = !signedIn || supportedTextLayers().length === 0;
-        imageButton.disabled = !signedIn || !supportedImageLayer();
-        applyImageButton.disabled = !signedIn || !latestImageAsset || !supportedImageLayer();
+      function canUseBackend() {
+        return Boolean(state.session) && !state.busy;
+      }
+
+      function setBusy(name) {
+        state.busy = name;
+        render();
+      }
+
+      function clearBusy() {
+        state.busy = null;
+        render();
+      }
+
+      function renderPill(element, label, kind = "") {
+        element.className = `pill ${kind}`.trim();
+        element.textContent = label;
+      }
+
+      function renderSteps() {
+        const steps = [
+          ["selection", state.selection.length > 0, "Get selection"],
+          ["auth", Boolean(state.session), "Backend paired"],
+          ["copy", state.generatedCopy || state.localizedCopy, "Copy generated"],
+          ["image", state.imageCompleted, "Image ready"],
+          ["apply", state.appliedCount > 0, "Apply event recorded"],
+        ];
+        const activeIndex = Math.max(0, steps.findIndex((step) => !step[1]));
+        els.steps.innerHTML = steps
+          .map(([key, done, label], index) => {
+            const cls = done ? "done" : index === activeIndex ? "active" : "";
+            return `<div class="step ${cls}" data-step="${key}"><span class="dot"></span><span>${label}</span></div>`;
+          })
+          .join("");
+      }
+
+      function renderSelection() {
+        if (!state.selection.length) {
+          els.layers.innerHTML = '<div class="muted">No layers selected. Create the demo selection or select layers on the canvas.</div>';
+          return;
+        }
+        els.layers.innerHTML = state.selection
+          .map((layer) => {
+            const detail =
+              layer.type === "text"
+                ? `${layer.characters || 0} chars`
+                : layer.dimensions
+                  ? `${layer.dimensions.width} x ${layer.dimensions.height}`
+                  : layer.type;
+            const issue = layer.issue || (!layer.supported ? "Unsupported layer type" : "");
+            return `
+              <div class="layer">
+                <div class="layer-title">
+                  <span class="layer-name">${escapeHtml(layer.name)}</span>
+                  <span class="pill ${layer.supported ? "ok" : "warn"}">${escapeHtml(layer.type)}</span>
+                </div>
+                <div class="muted">${escapeHtml(detail)}${issue ? ` · ${escapeHtml(issue)}` : ""}</div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function renderReadiness() {
+        const textCount = textLayers().length;
+        const validImage = validImageLayer();
+        const issue = imageLayerIssue();
+        els.textCount.textContent = `${textCount} ready`;
+        els.imageState.textContent = validImage ? `${validImage.dimensions.width} x ${validImage.dimensions.height}` : issue;
+
+        if (!state.session) {
+          renderPill(els.sessionPill, "Not paired", "warn");
+        } else {
+          renderPill(els.sessionPill, "Paired", "ok");
+        }
+
+        if (!state.selection.length) {
+          renderPill(els.readinessPill, "No selection", "warn");
+        } else if (!textCount && !validImage) {
+          renderPill(els.readinessPill, "Unsupported", "danger");
+        } else if (textCount && validImage) {
+          renderPill(els.readinessPill, "Ready", "ok");
+        } else {
+          renderPill(els.readinessPill, "Partial", "warn");
+        }
+      }
+
+      function renderLocalePicker() {
+        const selected = selectedLocales();
+        els.localeSummary.textContent = `${selected.length} selected`;
+        els.localePicker.innerHTML = locales
+          .map(([locale, label]) => `
+            <label class="locale-option">
+              <input type="checkbox" value="${escapeHtml(locale)}" ${state.selectedLocales.has(locale) ? "checked" : ""} ${state.busy ? "disabled" : ""} />
+              <span>${escapeHtml(locale)} · ${escapeHtml(label)}</span>
+            </label>
+          `)
+          .join("");
+        els.localePicker.querySelectorAll("input").forEach((input) => {
+          input.onchange = () => {
+            if (input.checked) {
+              state.selectedLocales.add(input.value);
+            } else {
+              state.selectedLocales.delete(input.value);
+            }
+            render();
+          };
+        });
+      }
+
+      function renderButtons() {
+        els.fixture.disabled = Boolean(state.busy);
+        els.auth.disabled = Boolean(state.busy);
+        els.refresh.disabled = Boolean(state.busy);
+        els.copy.disabled = !canUseBackend() || textLayers().length === 0;
+        els.selectAllLocales.disabled = Boolean(state.busy) || selectedLocales().length === locales.length;
+        els.clearLocales.disabled = Boolean(state.busy) || selectedLocales().length === 0;
+        els.localize.disabled = !canUseBackend() || textLayers().length === 0 || selectedLocales().length === 0;
+        els.image.disabled = !canUseBackend() || !validImageLayer();
+        els.applyImage.disabled = !canUseBackend() || !state.latestImageAsset || !validImageLayer() || state.imageApplied;
+
+        if (state.busy) {
+          const label = state.busy === "auth" ? "Pairing..." : state.busy === "image" ? "Creating..." : "Working...";
+          if (state.busy === "auth") els.auth.textContent = label;
+          if (state.busy === "copy") els.copy.textContent = label;
+          if (state.busy === "localize") els.localize.textContent = label;
+          if (state.busy === "image") els.image.textContent = label;
+          if (state.busy === "apply") els.applyImage.textContent = "Applying...";
+        } else {
+          els.auth.textContent = state.session ? "Re-pair backend" : "Pair backend";
+          els.copy.textContent = "Generate copy";
+          els.localize.textContent = selectedLocales().length ? `Localize ${selectedLocales().length}` : "Pick locales";
+          els.image.textContent = "Create image";
+          els.applyImage.textContent = "Apply image";
+        }
+      }
+
+      function render() {
+        renderSelection();
+        renderReadiness();
+        renderLocalePicker();
+        renderSteps();
+        renderButtons();
+      }
+
+      function setOutputs(html, label = "Ready", kind = "ok") {
+        els.outputs.innerHTML = html;
+        renderPill(els.outputPill, label, kind);
       }
 
       window.onmessage = (event) => {
         const message = event.data.pluginMessage;
         if (!message || message.type !== "selection") return;
-        latestSelection = message.layers || [];
-        currentUser = message.currentUser || null;
-        layers.innerHTML = latestSelection
-          .map((layer) => `<div class="row"><span>${layer.name}</span><code>${layer.type}${layer.supported ? "" : " ignored"}</code></div>`)
-          .join("") || "No layers selected.";
-        refreshButtons();
+        state.selection = message.layers || [];
+        state.currentUser = message.currentUser || null;
+        render();
       };
 
-      fixtureButton.onclick = () => {
+      els.fixture.onclick = () => {
+        hideBanner();
         parent.postMessage({ pluginMessage: { type: "create-fixture" } }, "*");
-        setTrace({ status: "creating_fixture", expectedSelection: ["text", "text", "imageFill"] });
+        setProof({ status: "creating_fixture", expectedSelection: ["text", "text", "imageFill"] });
       };
 
-      authButton.onclick = async () => {
+      els.refresh.onclick = () => {
+        parent.postMessage({ pluginMessage: { type: "refresh-selection" } }, "*");
+      };
+
+      els.selectAllLocales.onclick = () => {
+        locales.forEach(([locale]) => state.selectedLocales.add(locale));
+        render();
+      };
+
+      els.clearLocales.onclick = () => {
+        state.selectedLocales.clear();
+        render();
+      };
+
+      els.clearProof.onclick = () => {
+        setProof("Waiting.");
+        hideBanner();
+      };
+
+      els.auth.onclick = async () => {
+        setBusy("auth");
+        hideBanner();
         try {
+          const currentUser = state.currentUser;
           const start = await fetch("http://localhost:8000/auth/plugin/start", {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -183,86 +746,149 @@
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ ...contract, requestId: start.requestId, localNonce: "demo_nonce" }),
           }).then(readJson);
-          session = exchange.session;
-          setTrace({
+          state.session = exchange.session;
+          setProof({
             status: "paired",
             authRequestId: start.requestId,
             sessionExpiresAt: exchange.session.expiresAt,
-            figmaUserSeen: Boolean(currentUser),
-            selectedLayers: latestSelection.length,
+            figmaUserSeen: Boolean(state.currentUser),
+            selectedLayers: state.selection.length,
           });
-          outputs.textContent = "Backend paired. Generate copy or a simulated image placeholder.";
-          refreshButtons();
+          showBanner("ok", "Backend paired. Generate copy, localization, or image output from the current selection.");
+          setOutputs('<div class="muted">Backend paired. Generate copy or an image placeholder.</div>', "Ready", "ok");
         } catch (error) {
-          setTrace({ status: "auth_failed", error: String(error.message || error) });
+          showBanner("danger", "Backend pairing failed. Make sure the local backend is running on localhost:8000.");
+          setProof({ status: "auth_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
         }
       };
 
-      copyButton.onclick = async () => {
+      els.copy.onclick = async () => {
+        setBusy("copy");
+        hideBanner();
         try {
           const response = await fetch("http://localhost:8000/plugin/copy/generate", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-copy-demo-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-copy-proof-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_copy_001",
               variantCount: 3,
-              layers: supportedTextLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
+              layers: textLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
             }),
           }).then(readJson);
-          outputs.innerHTML = response.results
-            .flatMap((result) => result.variants.map((variant) => ({ ...variant, layerId: result.layerId })))
-            .map(
-              (variant) =>
-                `<button class="secondary" data-layer="${variant.layerId}" data-text="${variant.text.replaceAll('"', "&quot;")}">Apply copy: ${variant.text}</button>`,
-            )
-            .join("");
-          outputs.querySelectorAll("button[data-layer]").forEach((button) => {
+
+          const variants = response.results.flatMap((result) => result.variants.map((variant) => ({ ...variant, layerId: result.layerId })));
+          setOutputs(
+            variants
+              .map(
+                (variant) => `
+                  <div class="output">
+                    <div class="output-title">
+                      <span class="output-name">${escapeHtml(variant.text)}</span>
+                      <span class="pill">${Math.round(variant.score * 100)}%</span>
+                    </div>
+                    <button class="secondary" data-kind="copy" data-layer="${escapeHtml(variant.layerId)}" data-text="${escapeHtml(variant.text)}">Apply to layer</button>
+                  </div>
+                `,
+              )
+              .join(""),
+            `${variants.length} variants`,
+            "ok",
+          );
+          state.generatedCopy = true;
+          els.outputs.querySelectorAll("button[data-kind='copy']").forEach((button) => {
             button.onclick = async () => {
-              parent.postMessage({ pluginMessage: { type: "apply-copy", layerId: button.dataset.layer, text: button.dataset.text } }, "*");
-              await recordApply("op_copy_001", button.dataset.layer, "copy", "v1");
+              await applyCopy(button.dataset.layer, button.dataset.text, "op_copy_001", "v1");
             };
           });
-          setTrace({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+          setProof({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
         } catch (error) {
-          setTrace({ status: "copy_failed", error: String(error.message || error) });
+          showBanner("danger", "Copy generation failed.");
+          setProof({ status: "copy_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
         }
       };
 
-      localizeButton.onclick = async () => {
+      els.localize.onclick = async () => {
+        setBusy("localize");
+        hideBanner();
         try {
           const response = await fetch("http://localhost:8000/plugin/copy/localize", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-localize-demo-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-localize-proof-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_localize_001",
-              locales: ["fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "nl-NL", "ja-JP", "ko-KR"],
-              layers: supportedTextLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
+              locales: selectedLocales(),
+              layers: textLayers().map((layer) => ({ layerId: layer.layerId, text: layer.text || layer.name })),
             }),
           }).then(readJson);
-          const first = response.results[0]?.localizations[0];
-          outputs.innerHTML = first
-            ? `<button class="secondary" data-layer="${response.results[0].layerId}" data-text="${first.text.replaceAll('"', "&quot;")}">Apply ${first.locale}: ${first.text}</button>`
-            : "No localization returned.";
-          outputs.querySelectorAll("button[data-layer]").forEach((button) => {
+
+          const localizations = response.results.flatMap((result) =>
+            result.localizations.map((item) => ({ ...item, layerId: result.layerId, sourceText: result.sourceText })),
+          );
+          setOutputs(
+            response.results
+              .map(
+                (result) => `
+                  <div class="locale-group">
+                    <div class="output-title">
+                      <span class="output-name">${escapeHtml(result.sourceText || result.layerId)}</span>
+                      <span class="pill">${result.localizations.length} locales</span>
+                    </div>
+                    ${result.localizations
+                      .map(
+                        (item) => `
+                          <div class="output">
+                            <div class="output-title">
+                              <span class="output-name">${escapeHtml(item.text)}</span>
+                              <span class="pill">${escapeHtml(item.locale)}</span>
+                            </div>
+                            ${item.warning ? `<div class="muted">${escapeHtml(item.warning)}</div>` : ""}
+                            <button class="secondary" data-kind="localize" data-layer="${escapeHtml(result.layerId)}" data-text="${escapeHtml(item.text)}" data-locale="${escapeHtml(item.locale)}">Apply ${escapeHtml(item.locale)}</button>
+                          </div>
+                        `,
+                      )
+                      .join("")}
+                  </div>
+                `,
+              )
+              .join("") || '<div class="muted">No localization returned.</div>',
+            `${localizations.length} outputs`,
+            localizations.length ? "ok" : "warn",
+          );
+          state.localizedCopy = localizations.length > 0;
+          els.outputs.querySelectorAll("button[data-kind='localize']").forEach((button) => {
             button.onclick = async () => {
-              parent.postMessage({ pluginMessage: { type: "apply-copy", layerId: button.dataset.layer, text: button.dataset.text } }, "*");
-              await recordApply("op_loc_001", button.dataset.layer, "copy", "locale_fr-FR");
+              await applyCopy(button.dataset.layer, button.dataset.text, "op_loc_001", `locale_${button.dataset.locale}`);
             };
           });
-          setTrace({ status: response.status, operationId: response.operationId, usageEventId: response.usageEventId });
+          setProof({
+            status: response.status,
+            operationId: response.operationId,
+            usageEventId: response.usageEventId,
+            layerCount: response.results.length,
+            locales: selectedLocales(),
+          });
         } catch (error) {
-          setTrace({ status: "localize_failed", error: String(error.message || error) });
+          showBanner("danger", "Localization failed.");
+          setProof({ status: "localize_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
         }
       };
 
-      imageButton.onclick = async () => {
+      els.image.onclick = async () => {
+        setBusy("image");
+        hideBanner();
         try {
-          const imageLayer = supportedImageLayer();
+          const imageLayer = validImageLayer();
           const start = await fetch("http://localhost:8000/plugin/images/jobs", {
             method: "POST",
-            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-image-demo-001" }),
+            headers: authHeaders({ "content-type": "application/json", "idempotency-key": "figma-image-proof-001" }),
             body: JSON.stringify({
               ...contract,
               clientRequestId: "figma_image_001",
@@ -275,17 +901,33 @@
               prompt: "Energetic ecommerce product placeholder for Nova Athletics spring running gear",
             }),
           }).then(readJson);
+
           let completed = null;
           for (let attempt = 0; attempt < 3; attempt += 1) {
-            completed = await fetch(`http://localhost:8000/plugin/images/jobs/${start.jobId}`, {
-              headers: authHeaders(),
-            }).then(readJson);
+            completed = await fetch(`http://localhost:8000/plugin/images/jobs/${start.jobId}`, { headers: authHeaders() }).then(readJson);
+            setOutputs(`<div class="muted">Image job ${escapeHtml(completed.status)}...</div>`, completed.status, "warn");
+            await new Promise((resolve) => setTimeout(resolve, 240));
           }
-          latestImageAsset = completed.asset;
-          outputs.innerHTML = latestImageAsset
-            ? `<div>Simulated image ready: <code>${latestImageAsset.width} x ${latestImageAsset.height}</code>, <code>placeholderOnly: true</code>, <code>${latestImageAsset.rightsStatus}</code></div>`
-            : `<div class="warn">Image job did not complete.</div>`;
-          setTrace({
+
+          state.latestImageAsset = completed.asset || null;
+          state.imageCompleted = Boolean(state.latestImageAsset);
+          state.imageApplied = false;
+          setOutputs(
+            state.latestImageAsset
+              ? `
+                <div class="output">
+                  <div class="output-title">
+                    <span class="output-name">Mock image placeholder ready</span>
+                    <span class="pill ok">${escapeHtml(completed.status)}</span>
+                  </div>
+                  <div class="muted">${state.latestImageAsset.width} x ${state.latestImageAsset.height} · placeholderOnly · ${escapeHtml(state.latestImageAsset.rightsStatus)}</div>
+                </div>
+              `
+              : '<div class="muted">Image job did not complete.</div>',
+            state.latestImageAsset ? "Image ready" : "Incomplete",
+            state.latestImageAsset ? "ok" : "warn",
+          );
+          setProof({
             status: completed.status,
             jobId: completed.jobId,
             usageEventId: completed.usageEventId,
@@ -293,16 +935,20 @@
             rightsStatus: completed.asset?.rightsStatus,
             safetyStatus: completed.asset?.safetyStatus,
           });
-          refreshButtons();
         } catch (error) {
-          setTrace({ status: "image_failed", error: String(error.message || error) });
+          showBanner("danger", "Image job failed.");
+          setProof({ status: "image_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
         }
       };
 
-      applyImageButton.onclick = async () => {
+      els.applyImage.onclick = async () => {
+        setBusy("apply");
+        hideBanner();
         try {
-          const imageLayer = supportedImageLayer();
-          const buffer = await fetch(latestImageAsset.url).then((response) => response.arrayBuffer());
+          const imageLayer = validImageLayer();
+          const buffer = await fetch(state.latestImageAsset.url).then((response) => response.arrayBuffer());
           const bytes = new Uint8Array(buffer);
           let binary = "";
           bytes.forEach((byte) => {
@@ -312,11 +958,29 @@
             { pluginMessage: { type: "apply-image", layerId: imageLayer.layerId, imageBytesBase64: btoa(binary) } },
             "*",
           );
-          await recordApply("job_img_001", imageLayer.layerId, "image", latestImageAsset.assetId);
+          await recordApply("job_img_001", imageLayer.layerId, "image", state.latestImageAsset.assetId);
+          state.imageApplied = true;
         } catch (error) {
-          setTrace({ status: "apply_image_failed", error: String(error.message || error) });
+          showBanner("danger", "Applying image failed.");
+          setProof({ status: "apply_image_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
         }
       };
+
+      async function applyCopy(layerId, text, operationId, outputId) {
+        setBusy("apply");
+        hideBanner();
+        try {
+          parent.postMessage({ pluginMessage: { type: "apply-copy", layerId, text } }, "*");
+          await recordApply(operationId, layerId, "copy", outputId);
+        } catch (error) {
+          showBanner("danger", "Applying copy failed.");
+          setProof({ status: "apply_copy_failed", error: String(error.message || error) });
+        } finally {
+          clearBusy();
+        }
+      }
 
       async function recordApply(operationId, layerId, outputType, outputId) {
         const response = await fetch("http://localhost:8000/plugin/apply-events", {
@@ -329,7 +993,9 @@
             appliedItems: [{ layerId, outputId, outputType }],
           }),
         }).then(readJson);
-        setTrace({
+        state.appliedCount += 1;
+        showBanner("ok", "Apply event recorded with backend audit proof.");
+        setProof({
           applyEventId: response.applyEventId,
           auditEventId: response.auditEventId,
           operationId,
@@ -337,6 +1003,8 @@
           outputType,
         });
       }
+
+      render();
     </script>
   </body>
 </html>

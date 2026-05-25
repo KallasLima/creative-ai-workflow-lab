@@ -53,7 +53,10 @@ def localization_payload() -> dict:
         "profileId": "profile_nova_v3",
         "channel": "mobile",
         "locales": ["fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "nl-NL", "ja-JP", "ko-KR"],
-        "layers": [{"layerId": "txt_cta", "text": "Shop the drop"}],
+        "layers": [
+            {"layerId": "txt_cta", "text": "Shop the drop"},
+            {"layerId": "txt_custom", "text": "Build a weekend campaign"},
+        ],
     }
 
 
@@ -284,7 +287,10 @@ def test_model_operations_image_job_asset_apply_and_report(tmp_path: Path) -> No
 
     localization = api.post("/plugin/copy/localize", headers=model_headers(), json=localization_payload()).json()
     assert localization["operationId"] == "op_loc_001"
+    assert len(localization["results"]) == 2
     assert len(localization["results"][0]["localizations"]) == 8
+    assert localization["results"][0]["localizations"][0]["text"] == "Acheter la nouveaute"
+    assert localization["results"][1]["localizations"][0]["text"] == "FR brand adaptation: Build a weekend campaign"
     assert localization["results"][0]["localizations"][6]["locale"] == "ja-JP"
     assert localization["results"][0]["localizations"][6]["warning"] is not None
 

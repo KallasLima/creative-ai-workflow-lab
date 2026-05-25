@@ -6,6 +6,20 @@ The project is intentionally local-first. The model and image outputs are determ
 
 This is best read as a runnable architecture slice: it demonstrates the workflow boundaries that are expensive to retrofit later, especially backend-owned policy, profile context, async asset jobs, usage metering, and explicit apply/audit records.
 
+## AI Usage Transparency
+
+AI was used extensively throughout this assessment workflow for research, implementation support, code review, iteration, and documentation refinement. The core architecture, product thinking, technical direction, trade-offs, and final decisions are mine; AI served as an execution and review layer, not a replacement for ownership.
+
+## Screenshots
+
+Figma development plugin:
+
+![Figma development plugin localization workflow](assets/readme/figma-plugin-localization.png)
+
+Runnable local POC browser harness:
+
+![Runnable local POC localization workflow](assets/readme/poc-localization-harness.png)
+
 Production recommendation in the architecture docs:
 
 - TypeScript for the Figma plugin.

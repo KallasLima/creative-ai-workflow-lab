@@ -13,26 +13,33 @@ function hasImageFill(node) {
 
 function summarizeNode(node) {
   if (node.type === "TEXT") {
+    const mixedFonts = node.fontName === figma.mixed;
     return {
       id: node.id,
       layerId: node.id,
       name: node.name,
       type: "text",
-      supported: true,
+      supported: !mixedFonts,
       text: node.characters,
       characters: node.characters.length,
+      issue: mixedFonts ? "Mixed fonts cannot be applied safely in this local proof." : "",
     };
   }
 
   if ("width" in node && "height" in node) {
+    const width = Math.round(node.width);
+    const height = Math.round(node.height);
+    const canReceiveImageFill = "fills" in node;
+    const supported = canReceiveImageFill && width === 1024 && height === 1024;
     return {
       id: node.id,
       layerId: node.id,
       name: node.name,
       type: "imageFill",
-      supported: true,
+      supported,
       hasImageFill: hasImageFill(node),
-      dimensions: { width: Math.round(node.width), height: Math.round(node.height) },
+      dimensions: { width, height },
+      issue: supported ? "" : canReceiveImageFill ? "Expected 1024 x 1024 for image jobs." : "Layer cannot receive an image fill.",
     };
   }
 
@@ -54,11 +61,11 @@ function decodeBase64Png(base64) {
   return bytes;
 }
 
-async function createDemoFixture() {
+async function createProofFixture() {
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
 
   const frame = figma.createFrame();
-  frame.name = "Nova spring campaign demo";
+  frame.name = "Nova spring campaign proof";
   frame.resize(1280, 1040);
   frame.fills = [{ type: "SOLID", color: { r: 0.96, g: 0.96, b: 0.94 } }];
   frame.x = figma.viewport.center.x - 640;
@@ -94,7 +101,7 @@ async function createDemoFixture() {
   frame.appendChild(image);
   figma.currentPage.selection = [headline, cta, image];
   figma.viewport.scrollAndZoomIntoView([frame]);
-  figma.notify("Created demo fixture and selected 2 text layers plus a 1024 x 1024 image layer.");
+  figma.notify("Created local proof fixture and selected 2 text layers plus a 1024 x 1024 image layer.");
 }
 
 async function applyCopy(message) {
@@ -104,7 +111,7 @@ async function applyCopy(message) {
     return;
   }
   if (node.fontName === figma.mixed) {
-    figma.notify("Mixed fonts are not supported in the local demo plugin.", { error: true });
+    figma.notify("Mixed fonts are not supported in the local proof plugin.", { error: true });
     return;
   }
   await figma.loadFontAsync(node.fontName);
@@ -120,7 +127,7 @@ async function applyImage(message) {
   }
   const image = figma.createImage(decodeBase64Png(message.imageBytesBase64));
   node.fills = [{ type: "IMAGE", scaleMode: "FILL", imageHash: image.hash }];
-  figma.notify("Applied simulated 1024 x 1024 placeholder image fill.");
+  figma.notify("Applied mocked 1024 x 1024 placeholder image fill.");
 }
 
 function postSelection() {
@@ -140,7 +147,11 @@ figma.on("selectionchange", postSelection);
 
 figma.ui.onmessage = async (message) => {
   if (message.type === "create-fixture") {
-    await createDemoFixture();
+    await createProofFixture();
+    postSelection();
+  }
+
+  if (message.type === "refresh-selection") {
     postSelection();
   }
 
